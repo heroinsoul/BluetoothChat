@@ -2,5 +2,9 @@
     {
         "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/menu/option_menu.xml",
         "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/menu/option_menu.xml"
+    },
+    {
+        "merged": "/home/holod/StudioProjects/BluetoothChat/app/build/intermediates/res/merged/debug/menu/option_menu.xml",
+        "source": "/home/holod/StudioProjects/BluetoothChat/app/src/main/res/menu/option_menu.xml"
     }
 ]
