@@ -150,7 +150,7 @@ public class BluetoothChatService {
 
     /**
      * Start the ConnectThread to initiate a connection to a remote device.
-     * @param deviceList  The BluetoothDevice to connect
+    //* @param deviceList  The BluetoothDevice to connect
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
 //    public synchronized void connect(ArrayList<BluetoothDevice> deviceList, boolean secure) {
@@ -178,28 +178,38 @@ public class BluetoothChatService {
 //    }
 
 
-    public synchronized void connect(String deviceListString, boolean secure) {
+//    public synchronized void connect(String deviceListString, boolean secure) {
+    public void connect(String deviceListString, boolean secure) {
 
         String []deviceList = deviceListString.split(",");
 
         for (String address : deviceList) {
             // Get the BluetoothDevice object
-            BluetoothDevice device = mAdapter.getRemoteDevice(address);
 
-            if (D) Log.d(TAG, "connect to: " + device);
+            synchronized (BluetoothChatService.this) {
+                BluetoothDevice device = mAdapter.getRemoteDevice(address);
 
-            // Cancel any thread attempting to make a connection
-            if (mState == STATE_CONNECTING) {
-                if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
+                if (D) Log.d(TAG, "connect to: " + device);
+
+                // Cancel any thread attempting to make a connection
+                if (mState == STATE_CONNECTING) {
+                    if (mConnectThread != null) {
+                        mConnectThread.cancel();
+                        mConnectThread = null;
+                    }
+                }
+
+                // Cancel any thread currently running a connection
+                if (mConnectedThread != null) {
+                    mConnectedThread.cancel();
+                    mConnectedThread = null;
+                }
+
+                // Start the thread to connect with the given device
+                mConnectThread = new ConnectThread(device, secure);
+                mConnectThread.start();
+                setState(STATE_CONNECTING);
             }
-
-            // Cancel any thread currently running a connection
-            if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
-
-            // Start the thread to connect with the given device
-            mConnectThread = new ConnectThread(device, secure);
-            mConnectThread.start();
-            setState(STATE_CONNECTING);
 
 //            break;
             while(mState != STATE_LISTEN);
@@ -220,12 +230,15 @@ public class BluetoothChatService {
             device, final String socketType) {
         if (D) Log.d(TAG, "connected, Socket Type:" + socketType);
 
+        Log.d(TAG, "before cancelling threads");
         // Cancel the thread that completed the connection
         if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
 
+        Log.d(TAG, "before cancelling running threads");
         // Cancel any thread currently running a connection
         if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
 
+        Log.d(TAG, "before cancelling accepting threads");
         // Cancel the accept thread because we only want to connect to one device
         if (mSecureAcceptThread != null) {
             mSecureAcceptThread.cancel();
@@ -236,6 +249,7 @@ public class BluetoothChatService {
             mInsecureAcceptThread = null;
         }
 
+        Log.d(TAG, "before starting connected threads");
         // Start the thread to manage the connection and perform transmissions
         mConnectedThread = new ConnectedThread(socket, socketType);
         mConnectedThread.start();
@@ -374,6 +388,15 @@ public class BluetoothChatService {
 
                 // If a connection was accepted
                 if (socket != null) {
+                    // Get the BluetoothSocket input and output streams
+//                    try {
+//                        OutputStream tmpOut = socket.getOutputStream();
+//                        tmpOut.write("Hi".getBytes());
+//                    } catch (IOException e) {
+//                        Log.e(TAG, "temp sockets not created", e);
+//                    }
+//                    BluetoothChatService.this.start();
+
                     synchronized (BluetoothChatService.this) {
                         switch (mState) {
                         case STATE_LISTEN:
@@ -459,6 +482,8 @@ public class BluetoothChatService {
                 Log.d(TAG, "After socket connect");
             } catch (IOException e) {
                 // Close the socket
+                Log.d(TAG, "EXCEPTION WHILE CONNECTING");
+
                 try {
                     Log.d(TAG, "Before socket close");
                     mmSocket.close();
@@ -474,14 +499,22 @@ public class BluetoothChatService {
 
             Log.d(TAG, "before nullifying mconnectThread");
 
-            // Reset the ConnectThread because we're done
+//            // Reset the ConnectThread because we're done
             synchronized (BluetoothChatService.this) {
+                Log.d(TAG, "insidesync");
                 mConnectThread = null;
             }
 
             Log.d(TAG, "Calling Service's connected method");
             // Start the connected thread
             connected(mmSocket, mmDevice, mSocketType);
+
+
+//            // Reset the ConnectThread because we're done
+//            synchronized (BluetoothChatService.this) {
+//                Log.d(TAG, "insidesync");
+//                mConnectThread = null;
+//            }
         }
 
         public void cancel() {
@@ -550,7 +583,9 @@ public class BluetoothChatService {
             byte[] buffer = new byte[1024];
             int bytes;
 
+            Log.e(TAG, "SENDING MESSAGE");
             write("Hello".getBytes());
+            Log.e(TAG, "SENT MESSAGE");
             Log.e(TAG, "disconnected");
             BluetoothChatService.this.start();
 

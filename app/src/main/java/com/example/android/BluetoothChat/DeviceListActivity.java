@@ -163,11 +163,14 @@ public class DeviceListActivity extends Activity {
             Log.d(TAG,"info= " + info);
             String deviceList = null;
             for (int i=0; i<mNewDevicesArrayAdapter.getCount(); i++) {
-                if (deviceList == null) {
+                if (deviceList == null && mNewDevicesArrayAdapter.getItem(i).contains("Nexus")){
                     deviceList = mNewDevicesArrayAdapter.getItem(i).substring(mNewDevicesArrayAdapter.getItem(i).length() - 17);
                 }
                 else {
-                    deviceList += "," + mNewDevicesArrayAdapter.getItem(i).substring(mNewDevicesArrayAdapter.getItem(i).length() - 17);
+                    if (mNewDevicesArrayAdapter.getItem(i).contains("Nexus") &&
+                        !deviceList.contains(mNewDevicesArrayAdapter.getItem(i).substring(mNewDevicesArrayAdapter.getItem(i).length() - 17))) {
+                        deviceList += "," + mNewDevicesArrayAdapter.getItem(i).substring(mNewDevicesArrayAdapter.getItem(i).length() - 17);
+                    }
                 }
             }
             String address = info.substring(info.length() - 17);
@@ -176,6 +179,8 @@ public class DeviceListActivity extends Activity {
             Intent intent = new Intent();
 //            intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
             intent.putExtra(EXTRA_DEVICE_ADDRESS, deviceList);
+
+            Log.d(TAG, "Device List = " + deviceList);
 
             // Set result and finish this Activity
             setResult(Activity.RESULT_OK, intent);
