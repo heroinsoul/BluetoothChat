@@ -29,7 +29,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -114,10 +113,10 @@ public class BluetoothChatService {
 
 
         // Start the thread to listen on a BluetoothServerSocket
-        if (mSecureAcceptThread == null) {
-            mSecureAcceptThread = new AcceptThread(true);
-            mSecureAcceptThread.start();
-        }
+//        if (mSecureAcceptThread == null) {
+//            mSecureAcceptThread = new AcceptThread(true);
+//            mSecureAcceptThread.start();
+//        }
         if (mInsecureAcceptThread == null) {
             mInsecureAcceptThread = new AcceptThread(false);
             mInsecureAcceptThread.start();
@@ -240,10 +239,10 @@ public class BluetoothChatService {
 
         Log.d(TAG, "before cancelling accepting threads");
         // Cancel the accept thread because we only want to connect to one device
-        if (mSecureAcceptThread != null) {
-            mSecureAcceptThread.cancel();
-            mSecureAcceptThread = null;
-        }
+//        if (mSecureAcceptThread != null) {
+//            mSecureAcceptThread.cancel();
+//            mSecureAcceptThread = null;
+//        }
         if (mInsecureAcceptThread != null) {
             mInsecureAcceptThread.cancel();
             mInsecureAcceptThread = null;
@@ -280,10 +279,10 @@ public class BluetoothChatService {
             mConnectedThread = null;
         }
 
-        if (mSecureAcceptThread != null) {
-            mSecureAcceptThread.cancel();
-            mSecureAcceptThread = null;
-        }
+//        if (mSecureAcceptThread != null) {
+//            mSecureAcceptThread.cancel();
+//            mSecureAcceptThread = null;
+//        }
 
         if (mInsecureAcceptThread != null) {
             mInsecureAcceptThread.cancel();
@@ -355,13 +354,13 @@ public class BluetoothChatService {
 
             // Create a new listening server socket
             try {
-                if (secure) {
-                    tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE,
-                        MY_UUID_SECURE);
-                } else {
+//                if (secure) {
+//                    tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE,
+//                        MY_UUID_SECURE);
+//                } else {
                     tmp = mAdapter.listenUsingInsecureRfcommWithServiceRecord(
                             NAME_INSECURE, MY_UUID_INSECURE);
-                }
+//                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "listen() failed", e);
             }
@@ -451,13 +450,13 @@ public class BluetoothChatService {
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
-                if (secure) {
-                    tmp = device.createRfcommSocketToServiceRecord(
-                            MY_UUID_SECURE);
-                } else {
+//                if (secure) {
+//                    tmp = device.createRfcommSocketToServiceRecord(
+//                            MY_UUID_SECURE);
+//                } else {
                     tmp = device.createInsecureRfcommSocketToServiceRecord(
                             MY_UUID_INSECURE);
-                }
+//                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "create() failed", e);
             }
