@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efda5060-c23f-4d00-8f7c-e491c6152f01" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/example/android/BluetoothChat/BluetoothChatService.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/android/BluetoothChat/BluetoothChatService.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BluetoothChat.iws" />
@@ -1774,7 +1773,13 @@
       <option name="project" value="LOCAL" />
       <updated>1449597676575</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="last update">
+      <created>1449662941269</created>
+      <option name="number" value="00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1449662941269</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="ToolWindowManager">
