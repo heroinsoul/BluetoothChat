@@ -29,6 +29,8 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -215,7 +217,7 @@ public class BluetoothChatService {
             }
 
 //            break;
-//            while(mState != STATE_LISTEN);
+            while(mState != STATE_LISTEN);
         }
 
     }
@@ -612,7 +614,13 @@ public class BluetoothChatService {
 
                     //READER
                     if(receivedMsg.contains("GET-BEACONS")) {
-                        write("BEACONS-REPLY\ne03bce2a92a9\n31141ec342f7\ne0000000000\n".getBytes());
+                        String readerBeacons = "BEACONS-REPLY\n";
+                        Iterator it = BluetoothChat.beaconMap.entrySet().iterator();
+                        while (it.hasNext()) {
+                            Map.Entry beacon = (Map.Entry) it.next();
+                            readerBeacons += beacon.getKey() + "\n";
+                        }
+                        write(readerBeacons.getBytes());
                         BluetoothChatService.this.start();
                         break;
                     }

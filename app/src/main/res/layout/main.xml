@@ -21,11 +21,9 @@
     >
     <ListView android:id="@+id/in"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="350dp"
         android:stackFromBottom="true"
-        android:transcriptMode="alwaysScroll"
-        android:layout_weight="1"
-    />
+        android:transcriptMode="alwaysScroll" />
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -42,5 +40,25 @@
             android:layout_height="wrap_content"
             android:text="@string/send"
         />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Beacons"
+            android:id="@+id/showBeaconsButton"
+            android:layout_gravity="center_horizontal" />
+
+        <Button android:id="@+id/discover_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Discovery"
+            android:layout_gravity="center_horizontal"
+            />
     </LinearLayout>
 </LinearLayout>
