@@ -61,6 +61,8 @@ public class BluetoothChatService {
     private ConnectedThread mConnectedThread;
     private int mState;
 
+    private boolean isWriter = false;
+
     // Constants that indicate the current connection state
     public static final int STATE_NONE = 0;       // we're doing nothing
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
@@ -182,6 +184,8 @@ public class BluetoothChatService {
 
         String []deviceList = deviceListString.split(",");
 
+        isWriter = true;
+
         for (String address : deviceList) {
             // Get the BluetoothDevice object
 
@@ -211,7 +215,7 @@ public class BluetoothChatService {
             }
 
 //            break;
-            while(mState != STATE_LISTEN);
+//            while(mState != STATE_LISTEN);
         }
 
     }
@@ -354,13 +358,13 @@ public class BluetoothChatService {
 
             // Create a new listening server socket
             try {
-//                if (secure) {
-//                    tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE,
-//                        MY_UUID_SECURE);
-//                } else {
+                if (secure) {
+                    tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE,
+                        MY_UUID_SECURE);
+                } else {
                     tmp = mAdapter.listenUsingInsecureRfcommWithServiceRecord(
                             NAME_INSECURE, MY_UUID_INSECURE);
-//                }
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "listen() failed", e);
             }
@@ -476,27 +480,27 @@ public class BluetoothChatService {
             try {
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
-                Log.d(TAG, "Before socket connect");
+//                Log.d(TAG, "Before socket connect");
                 mmSocket.connect();
-                Log.d(TAG, "After socket connect");
+//                Log.d(TAG, "After socket connect");
             } catch (IOException e) {
                 // Close the socket
-                Log.d(TAG, "EXCEPTION WHILE CONNECTING");
+//                Log.d(TAG, "EXCEPTION WHILE CONNECTING");
 
                 try {
-                    Log.d(TAG, "Before socket close");
+//                    Log.d(TAG, "Before socket close");
                     mmSocket.close();
-                    Log.d(TAG, "After socket close");
+//                    Log.d(TAG, "After socket close");
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() " + mSocketType +
                             " socket during connection failure", e2);
                 }
                 connectionFailed();
-                Log.d(TAG, "Exiting connectThread run()");
+//                Log.d(TAG, "Exiting connectThread run()");
                 return;
             }
 
-            Log.d(TAG, "before nullifying mconnectThread");
+//            Log.d(TAG, "before nullifying mconnectThread");
 
 //            // Reset the ConnectThread because we're done
             synchronized (BluetoothChatService.this) {
@@ -582,34 +586,59 @@ public class BluetoothChatService {
             byte[] buffer = new byte[1024];
             int bytes;
 
-            Log.e(TAG, "SENDING MESSAGE");
-            write("Hello".getBytes());
-            Log.e(TAG, "SENT MESSAGE");
-            Log.e(TAG, "disconnected");
-            BluetoothChatService.this.start();
+            String receivedMsg = null;
+
+            if(isWriter) {
+                Log.e(TAG, "SENDING MESSAGE");
+                write("GET-BEACONS\ne03bce2a92a9\n31141ec342f7\ne59321c47f27\n".getBytes());
+                Log.e(TAG, "SENT MESSAGE");
+            }
 
             // Keep listening to the InputStream while connected
-//            while (true) {
-//                try {
-//                    // Read from the InputStream
-//                    bytes = mmInStream.read(buffer);
-//
-//                    // Send the obtained bytes to the UI Activity
-//                    mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-//                            .sendToTarget();
-//                } catch (IOException e) {
-//                    Log.e(TAG, "disconnected", e);
-//                    connectionLost();
-//                    // Start the service over to restart listening mode
-//                    BluetoothChatService.this.start();
-//                    break;
-//                }
-//            }
+            while (true) {
+                try {
+
+                    Log.d(TAG, "Reading from input...");
+                    // Read from the InputStream
+                    bytes = mmInStream.read(buffer);
+                    Log.d(TAG, "Got a message!");
+
+                    receivedMsg = new String(buffer);
+
+                    Log.d(TAG, "receivedMsg = " + receivedMsg);
+                    // Send the obtained bytes to the UI Activity
+                    mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
+                            .sendToTarget();
+
+                    //READER
+                    if(receivedMsg.contains("GET-BEACONS")) {
+                        write("BEACONS-REPLY\ne03bce2a92a9\n31141ec342f7\ne0000000000\n".getBytes());
+                        BluetoothChatService.this.start();
+                        break;
+                    }
+
+                    //WRITER
+                    if(receivedMsg.contains("BEACONS-REPLY")) {
+                        BluetoothChatService.this.start();
+                        break;
+                    }
+
+                    // Send the obtained bytes to the UI Activity
+                    mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
+                            .sendToTarget();
+                } catch (IOException e) {
+                    Log.e(TAG, "disconnected", e);
+                    connectionLost();
+                    // Start the service over to restart listening mode
+                    BluetoothChatService.this.start();
+                    break;
+                }
+            }
         }
 
 
         /**
-         * Write to the connected OutStream.
+         *  to the connected OutStream.
          * @param buffer  The bytes to write
          */
         public void write(byte[] buffer) {
