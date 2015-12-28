@@ -148,12 +148,12 @@ public class BluetoothChat extends Activity {
 
         // If we're already discovering, stop it
         if (mBluetoothAdapter.isDiscovering()) {
-            discoverButton.setText("Start Discovering");
+            discoverButton.setText("Start Discovery");
             mBluetoothAdapter.cancelDiscovery();
         }
         else {
             // Request discover from BluetoothAdapter
-            discoverButton.setText("Stop Discovering");
+            discoverButton.setText("Stop Discovery");
             mBluetoothAdapter.startDiscovery();
         }
     }

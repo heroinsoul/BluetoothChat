@@ -60,5 +60,11 @@
             android:text="Start Discovery"
             android:layout_gravity="center_horizontal"
             />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Message"
+            android:id="@+id/sendMessageButtone"
+            />
     </LinearLayout>
 </LinearLayout>

@@ -58,26 +58,36 @@
     <Spinner
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/spinner"
+        android:id="@+id/beaconsSpinner"
         android:layout_marginTop="20dp"
         android:layout_below="@+id/textView"
         android:layout_alignParentLeft="true" />
 
-    <Button
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Send"
-        android:id="@+id/sendButton"
-        android:layout_below="@+id/spinner"
-        android:layout_alignParentLeft="true"
-        android:layout_marginTop="30dp" />
+        android:orientation="horizontal"
+        android:layout_below="@+id/beaconsSpinner"
+        android:layout_marginTop="30dp"
+        >
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Cancel"
-        android:id="@+id/cancelButton"
-        android:layout_alignTop="@+id/sendButton"
-        android:layout_alignParentRight="true" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send"
+            android:id="@+id/sendButton"
+            android:layout_weight="1"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:id="@+id/cancelButton"
+            android:layout_weight="1"
+            />
+
+    </LinearLayout>
+
 
 </RelativeLayout>
