@@ -8,12 +8,12 @@
         "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/device_name.xml"
     },
     {
-        "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/custom_title.xml",
-        "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/custom_title.xml"
-    },
-    {
         "merged": "/home/holod/StudioProjects/BluetoothChat/app/build/intermediates/res/merged/debug/layout/message.xml",
         "source": "/home/holod/StudioProjects/BluetoothChat/app/src/main/res/layout/message.xml"
+    },
+    {
+        "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/custom_title.xml",
+        "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/custom_title.xml"
     },
     {
         "merged": "/home/holod/StudioProjects/BluetoothChat/app/build/intermediates/res/merged/debug/layout/device_name.xml",
