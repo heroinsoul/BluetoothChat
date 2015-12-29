@@ -29,7 +29,7 @@ public final class R {
         public static final int paired_devices=0x7f060003;
         public static final int secure_connect_scan=0x7f060013;
         public static final int sendButton=0x7f060011;
-        public static final int sendMessageButtone=0x7f06000c;
+        public static final int sendMessageButton=0x7f06000c;
         public static final int showBeaconsButton=0x7f06000a;
         public static final int textView=0x7f06000f;
         public static final int title_left_text=0x7f060000;
@@ -43,6 +43,7 @@ public final class R {
         public static final int device_name=0x7f030002;
         public static final int main=0x7f030003;
         public static final int message=0x7f030004;
+        public static final int message_beacon=0x7f030005;
     }
     public static final class menu {
         public static final int option_menu=0x7f050000;

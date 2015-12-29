@@ -125,6 +125,7 @@ public class BluetoothChat extends Activity {
                 Iterator it = beaconMap.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry beacon = (Map.Entry) it.next();
+                    Log.d(TAG, "THE LIST CONTAINS: " + beacon.getKey() + beacon.getValue());
                     mConversationArrayAdapter.add(beacon.getKey() + " - " + beacon.getValue());
                 }
             }
@@ -238,7 +239,7 @@ public class BluetoothChat extends Activity {
         mSendButton = (Button) findViewById(R.id.button_send);
         mSendButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                // Send a message using content of the edit text widget
+                // Send a message_beacon using content of the edit text widget
                 TextView view = (TextView) findViewById(R.id.edit_text_out);
                 String message = view.getText().toString();
                 sendMessage(message);
@@ -283,7 +284,7 @@ public class BluetoothChat extends Activity {
     }
 
     /**
-     * Sends a message.
+     * Sends a message_beacon.
      * @param message  A string of text to send.
      */
     private void sendMessage(String message) {
@@ -295,7 +296,7 @@ public class BluetoothChat extends Activity {
 
         // Check that there's actually something to send
         if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
+            // Get the message_beacon bytes and tell the BluetoothChatService to write
             byte[] send = message.getBytes();
             mChatService.write(send);
 
@@ -309,7 +310,7 @@ public class BluetoothChat extends Activity {
     private TextView.OnEditorActionListener mWriteListener =
         new TextView.OnEditorActionListener() {
         public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-            // If the action is a key-up event on the return key, send the message
+            // If the action is a key-up event on the return key, send the message_beacon
             if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
                 String message = view.getText().toString();
                 sendMessage(message);
