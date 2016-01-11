@@ -1,16 +1,29 @@
 package com.example.android.BluetoothChat;
 
+import android.app.Activity;
+import android.os.Bundle;
+import android.util.Log;
+
+
 import java.util.ArrayList;
 
 /**
  * Created by holod on 12/10/15.
  */
-public class Message {
+public class Message extends Activity {
 
     private int id;
     private String text;
     private String destination;
     private ArrayList<String> beacons;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Set up the window layout
+        setContentView(R.layout.message_beacon);
+    }
 
     public Message(int id, String text, String destination) {
         this.id = id;

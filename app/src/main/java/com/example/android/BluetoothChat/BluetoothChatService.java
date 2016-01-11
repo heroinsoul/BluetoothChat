@@ -592,7 +592,18 @@ public class BluetoothChatService {
 
             if(isWriter) {
                 Log.e(TAG, "SENDING MESSAGE");
-                write("GET-BEACONS\ne03bce2a92a9\n31141ec342f7\ne59321c47f27\n".getBytes());
+//                write("GET-BEACONS\ne03bce2a92a9\n31141ec342f7\ne59321c47f27\n".getBytes());
+
+                // Send my list of detected beacons while requesting the same from other client
+                String myDetectedBeacons = "GET-BEACONS\n";
+                Iterator it = BluetoothChat.beaconMap.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry beacon = (Map.Entry) it.next();
+                    myDetectedBeacons += beacon.getKey() + "\n";
+                }
+                write(myDetectedBeacons.getBytes());
+
+
                 Log.e(TAG, "SENT MESSAGE");
             }
 

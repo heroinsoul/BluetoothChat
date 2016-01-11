@@ -19,10 +19,14 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk minSdkVersion="6" />
+    <uses-sdk android:minSdkVersion="18" />
 
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
+
+    <android:uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <android:uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <android:uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:icon="@drawable/app_icon"
@@ -42,6 +46,10 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/select_device"
             android:theme="@android:style/Theme.Holo.Dialog" />
+        <activity
+            android:name="android.os.Message"
+            android:label="Write your message" />
+        <activity android:name="com.example.android.BluetoothChat.SendMessageActivity" />
     </application>
 
 </manifest>

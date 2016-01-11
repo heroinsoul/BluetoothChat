@@ -86,8 +86,21 @@ public class BluetoothChat extends Activity {
     // Member object for the chat services
     private BluetoothChatService mChatService = null;
 
-
+    // List of detected beacons
     public static HashMap<String, String> beaconMap = new HashMap<>();
+
+    // List of all the beacons deployed out there. Not to confuse with
+    // beaconMap, which is the list of detected beacons.
+    public static HashMap<String, String> allBeacons = new HashMap<String, String>() {
+        {
+            put("EC:74:61:FE:EC:26","1st floor");
+            put("F9:7C:2B:0F:3D:A7","2nd floor");
+            put("E6:BF:80:AE:AF:63","3rd floor");
+            put("F3:CE:E0:F8:6B:E2","4th floor");
+            put("DF:8B:3E:EE:C6:1C","5th floor");
+        };
+    };
+
     private Button discoverButton;
 
 
@@ -101,6 +114,8 @@ public class BluetoothChat extends Activity {
 
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        Log.d("This is my MAC   " + mBluetoothAdapter.getAddress(),TAG);
 
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -125,9 +140,22 @@ public class BluetoothChat extends Activity {
                 Iterator it = beaconMap.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry beacon = (Map.Entry) it.next();
-                    Log.d(TAG, "THE LIST CONTAINS: " + beacon.getKey() + beacon.getValue());
-                    mConversationArrayAdapter.add(beacon.getKey() + " - " + beacon.getValue());
+                    Log.d(TAG, "THE LIST CONTAINS: " + beacon.getKey() + " - " + beacon.getValue());
+                    if (beacon.getValue().equals("iBKS105")) {
+                        mConversationArrayAdapter.add(beacon.getKey() + " - " + beacon.getValue());
+                    }
                 }
+            }
+        });
+
+        // Button to create and send a message to a specific ID
+
+        Button sendBeaconMsg = (Button) findViewById(R.id.sendMessageButton);
+        sendBeaconMsg.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent myIntent = new Intent(view.getContext(), SendMessageActivity.class);
+                startActivity(myIntent);
             }
         });
 
@@ -172,7 +200,7 @@ public class BluetoothChat extends Activity {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
-                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
                     beaconMap.put(device.getAddress(), device.getName());
                 }
                 // When discovery is finished, change the Activity title
