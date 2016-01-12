@@ -1,18 +1,28 @@
 package com.example.android.BluetoothChat;
 
 import android.app.Activity;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class SendMessageActivity extends Activity {
+
+    // Debugging
+    private static final String TAG = "DEBUG";
+    private static final boolean D = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +30,7 @@ public class SendMessageActivity extends Activity {
         setContentView(R.layout.message_beacon);
 
         // Spinner element
-        Spinner beaconsSpinner = (Spinner) findViewById(R.id.beaconsSpinner);
+        final Spinner beaconsSpinner = (Spinner) findViewById(R.id.beaconsSpinner);
 
         // Spinnet onclick listener
         beaconsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -40,7 +50,7 @@ public class SendMessageActivity extends Activity {
         });
 
         List<String> beaconList = new ArrayList<String>();
-        beaconList.addAll(BluetoothChat.allBeacons.values());
+        beaconList.addAll(BluetoothChat.allBeacons.keySet());
 
         // Creating adapter for spinner
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, beaconList);
@@ -52,7 +62,41 @@ public class SendMessageActivity extends Activity {
         beaconsSpinner.setAdapter(dataAdapter);
 
 
+        final EditText textEditMAC = (EditText)findViewById(R.id.destID);
+        final EditText textEditMSG = (EditText)findViewById(R.id.msgText);
+
+        Button sendMessage = (Button) findViewById(R.id.sendButton);
+        sendMessage.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String destinationID = textEditMAC.getText().toString();
+                String message = textEditMSG.getText().toString();
+                String beaconKey = beaconsSpinner.getSelectedItem().toString();
+                String beaconValue = "";
+
+                // Get value for the given key out of the allBeacons hashmap
+                Iterator it = BluetoothChat.allBeacons.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry beacon = (Map.Entry) it.next();
+                    if (beacon.getKey().equals(beaconKey)) {
+                        beaconValue = beacon.getValue().toString();
+                    }
+                }
+                Log.d(TAG,"Recorded values: " + destinationID + " " + message + " " + beaconValue);
+
+                Message msg = new Message(message, destinationID, beaconValue);
+                BluetoothChat.messageHashMap.put(msg.getId(),msg);
 
 
+            }
+        });
+
+        Button cancelMessage = (Button) findViewById(R.id.cancelButton);
+        cancelMessage.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 }

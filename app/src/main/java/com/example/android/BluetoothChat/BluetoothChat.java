@@ -25,7 +25,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -40,7 +39,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.os.Message;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -89,15 +88,18 @@ public class BluetoothChat extends Activity {
     // List of detected beacons
     public static HashMap<String, String> beaconMap = new HashMap<>();
 
+    // Incoming and outgoing messages list
+    public static HashMap<Integer, com.example.android.BluetoothChat.Message> messageHashMap = new HashMap<>();
+
     // List of all the beacons deployed out there. Not to confuse with
     // beaconMap, which is the list of detected beacons.
     public static HashMap<String, String> allBeacons = new HashMap<String, String>() {
         {
-            put("EC:74:61:FE:EC:26","1st floor");
-            put("F9:7C:2B:0F:3D:A7","2nd floor");
-            put("E6:BF:80:AE:AF:63","3rd floor");
-            put("F3:CE:E0:F8:6B:E2","4th floor");
-            put("DF:8B:3E:EE:C6:1C","5th floor");
+            put("1st floor","EC:74:61:FE:EC:26");
+            put("2nd floor","F9:7C:2B:0F:3D:A7");
+            put("3rd floor","E6:BF:80:AE:AF:63");
+            put("4th floor","F3:CE:E0:F8:6B:E2");
+            put("5th floor","DF:8B:3E:EE:C6:1C");
         };
     };
 
@@ -138,6 +140,7 @@ public class BluetoothChat extends Activity {
             public void onClick(View view) {
                 mConversationArrayAdapter.clear();
                 Iterator it = beaconMap.entrySet().iterator();
+                mConversationArrayAdapter.add("My MAC address is " + mBluetoothAdapter.getAddress());
                 while (it.hasNext()) {
                     Map.Entry beacon = (Map.Entry) it.next();
                     Log.d(TAG, "THE LIST CONTAINS: " + beacon.getKey() + " - " + beacon.getValue());
