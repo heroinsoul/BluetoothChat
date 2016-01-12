@@ -82,7 +82,7 @@ public class SendMessageActivity extends Activity {
                         beaconValue = beacon.getValue().toString();
                     }
                 }
-                Log.d(TAG,"Recorded values: " + destinationID + " " + message + " " + beaconValue);
+                Log.d(TAG,"Recorded values: " + "DestID: " + destinationID + " Msg: " + message + " BeaconID: " + beaconValue);
 
                 Message msg = new Message(message, destinationID, beaconValue);
                 BluetoothChat.messageHashMap.put(msg.getId(),msg);
