@@ -163,11 +163,11 @@ public class DeviceListActivity extends Activity {
             Log.d(TAG,"info= " + info);
             String deviceList = null;
             for (int i=0; i<mNewDevicesArrayAdapter.getCount(); i++) {
-                if (deviceList == null && mNewDevicesArrayAdapter.getItem(i).contains("Nexus")){
+                if (deviceList == null && mNewDevicesArrayAdapter.getItem(i).contains("BTChat")){
                     deviceList = mNewDevicesArrayAdapter.getItem(i).substring(mNewDevicesArrayAdapter.getItem(i).length() - 17);
                 }
                 else {
-                    if (mNewDevicesArrayAdapter.getItem(i).contains("Nexus") &&
+                    if (mNewDevicesArrayAdapter.getItem(i).contains("BTChat") &&
                         !deviceList.contains(mNewDevicesArrayAdapter.getItem(i).substring(mNewDevicesArrayAdapter.getItem(i).length() - 17))) {
                         deviceList += "," + mNewDevicesArrayAdapter.getItem(i).substring(mNewDevicesArrayAdapter.getItem(i).length() - 17);
                     }

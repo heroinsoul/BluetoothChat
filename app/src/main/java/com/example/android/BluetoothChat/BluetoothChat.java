@@ -43,6 +43,7 @@ import android.os.Message;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -117,6 +118,8 @@ public class BluetoothChat extends Activity {
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
+        ensureDiscoverable();
+
         Log.d("This is my MAC   " + mBluetoothAdapter.getAddress(),TAG);
 
         // Register for broadcasts when a device is discovered
@@ -190,6 +193,7 @@ public class BluetoothChat extends Activity {
         }
     }
 
+    List<String> deviceList = new ArrayList<String>();
 
     // The BroadcastReceiver that listens for discovered devices and
     // changes the title when discovery is finished
@@ -205,6 +209,18 @@ public class BluetoothChat extends Activity {
                 // If it's already paired, skip it, because it's been listed already
                 if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
                     beaconMap.put(device.getAddress(), device.getName());
+                }
+
+                // If the discovered device is BTChat client, initiate insecure connection
+                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
+                    Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
+//                    synchronized (BluetoothChat.this) {
+//                        // Create the result Intent and include the MAC address
+//                        Intent deviceIntent = new Intent();
+//                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, device.getAddress());
+//                        connectDevice(deviceIntent, false);
+//                    }
+                    deviceList.add(device.getAddress());
                 }
                 // When discovery is finished, change the Activity title
             }
@@ -309,7 +325,10 @@ public class BluetoothChat extends Activity {
         if (mBluetoothAdapter.getScanMode() !=
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+//            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            // Make the device always discoverable by setting duration to 0
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+
             startActivity(discoverableIntent);
         }
     }
@@ -483,5 +502,7 @@ public class BluetoothChat extends Activity {
         }
         return false;
     }
+
+
 
 }
