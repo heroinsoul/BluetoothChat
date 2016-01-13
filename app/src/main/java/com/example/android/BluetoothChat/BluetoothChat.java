@@ -120,6 +120,8 @@ public class BluetoothChat extends Activity {
 
         ensureDiscoverable();
 
+
+
         Log.d("This is my MAC   " + mBluetoothAdapter.getAddress(),TAG);
 
         // Register for broadcasts when a device is discovered
@@ -136,6 +138,21 @@ public class BluetoothChat extends Activity {
             finish();
             return;
         }
+
+
+        // Snipper to run the discovery process every 20 seconds
+        // considering it only takes 12 sec to finish the discovery
+        final Handler deviceDiscoveryHandler = new Handler();
+        deviceDiscoveryHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // First cancel currently running discovery (if any)
+                mBluetoothAdapter.cancelDiscovery();
+                // Run our own discovery and wait till it finishes
+                mBluetoothAdapter.startDiscovery();
+                deviceDiscoveryHandler.postDelayed(this,20000);
+            }
+        },15000);
 
         Button showBeaconsButton = (Button) findViewById(R.id.showBeaconsButton);
         showBeaconsButton.setOnClickListener(new OnClickListener() {
@@ -193,6 +210,10 @@ public class BluetoothChat extends Activity {
         }
     }
 
+    private void processDevicelist() {
+
+    }
+
     List<String> deviceList = new ArrayList<String>();
 
     // The BroadcastReceiver that listens for discovered devices and
@@ -224,14 +245,19 @@ public class BluetoothChat extends Activity {
                 }
                 // When discovery is finished, change the Activity title
             }
-//            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+
+            // Receive and process notification of discovery process finish
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
+                processDevicelist();
 //                setProgressBarIndeterminateVisibility(false);
 //                setTitle(R.string.select_device);
 //                if (mNewDevicesArrayAdapter.getCount() == 0) {
 //                    String noDevices = getResources().getText(R.string.none_found).toString();
 //                    mNewDevicesArrayAdapter.add(noDevices);
 //                }
-//            }
+            }
+
         }
     };
 

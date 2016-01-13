@@ -1,7 +1,6 @@
 package com.example.android.BluetoothChat;
 
 import android.app.Activity;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -31,6 +30,7 @@ public class SendMessageActivity extends Activity {
 
         // Spinner element
         final Spinner beaconsSpinner = (Spinner) findViewById(R.id.beaconsSpinner);
+
 
         // Spinnet onclick listener
         beaconsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
