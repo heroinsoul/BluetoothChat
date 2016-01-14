@@ -29,7 +29,9 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -618,13 +620,28 @@ public class BluetoothChatService {
 
                     receivedMsg = new String(buffer);
 
-                    Log.d(TAG, "receivedMsg = " + receivedMsg);
                     // Send the obtained bytes to the UI Activity
                     mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
 
                     //READER
                     if(receivedMsg.contains("GET-BEACONS")) {
+
+                        // Split received beacon list by lines
+                        String[] separated = receivedMsg.split("\n");
+
+                        List<String> receivedBeacons = new ArrayList<>();
+
+                        // Iterate through the list of received beacons
+                        // and remove the bytes garbage at the last line
+                        // as well as ignore the GET_BEACONS first line
+                        // Add them to the receivedBeacons array list
+                        for (int s=1; s<separated.length-1; s++) {
+                            receivedBeacons.add(separated[s]);
+                            Log.d(TAG, "receivedMsg = " + separated[s]);
+                        }
+
+                        // Reply with my list of detected beacons
                         String readerBeacons = "BEACONS-REPLY\n";
                         Iterator it = BluetoothChat.beaconMap.entrySet().iterator();
                         while (it.hasNext()) {

@@ -152,7 +152,7 @@ public class BluetoothChat extends Activity {
                 mBluetoothAdapter.startDiscovery();
                 deviceDiscoveryHandler.postDelayed(this,20000);
             }
-        },15000);
+        },20000);
 
         Button showBeaconsButton = (Button) findViewById(R.id.showBeaconsButton);
         showBeaconsButton.setOnClickListener(new OnClickListener() {
@@ -238,7 +238,6 @@ public class BluetoothChat extends Activity {
 //                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, device.getAddress());
 //                        connectDevice(deviceIntent, false);
 //                    }
-                    btChatClientsList.clear();
                     btChatClientsList.add(device.getAddress());
                 }
             }
@@ -266,9 +265,10 @@ public class BluetoothChat extends Activity {
         for (int i=0; i < listSize; i++) {
 //            mConversationArrayAdapter.add(btChatClientsList.get(i));
             Intent deviceIntent = new Intent();
-            deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, i);
+            deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
             connectDevice(deviceIntent, false);
         }
+        btChatClientsList.clear();
     }
 
     @Override
