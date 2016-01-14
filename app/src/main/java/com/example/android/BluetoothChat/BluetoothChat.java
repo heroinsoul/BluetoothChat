@@ -261,10 +261,13 @@ public class BluetoothChat extends Activity {
     // Process the list of detected BTChat devices after the each discovery
     //
     private void processBTChatlist() {
-        mConversationArrayAdapter.clear();
+//        mConversationArrayAdapter.clear();
         int listSize = btChatClientsList.size();
         for (int i=0; i < listSize; i++) {
-            mConversationArrayAdapter.add(btChatClientsList.get(i));
+//            mConversationArrayAdapter.add(btChatClientsList.get(i));
+            Intent deviceIntent = new Intent();
+            deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, i);
+            connectDevice(deviceIntent, false);
         }
     }
 
@@ -500,7 +503,9 @@ public class BluetoothChat extends Activity {
 
         // Attempt to connect to the device
 //        mChatService.connect(btDeviceList, secure);
+        Log.d(TAG, "BEFORE CONNECTING TO THE DEVICE");
         mChatService.connect(data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS), secure);
+        Log.d(TAG, "AFTER CONNECTING TO THE DEVICE");
 
 
     }
