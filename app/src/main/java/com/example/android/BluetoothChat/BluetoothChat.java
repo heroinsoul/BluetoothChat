@@ -140,10 +140,10 @@ public class BluetoothChat extends Activity {
         }
 
 
-        // Snipper to run the discovery process every 20 seconds
+        // Snippet to run the discovery process every 20 seconds
         // considering it only takes 12 sec to finish the discovery
         final Handler deviceDiscoveryHandler = new Handler();
-        deviceDiscoveryHandler.postDelayed(new Runnable() {
+        deviceDiscoveryHandler.post(new Runnable() {
             @Override
             public void run() {
                 // First cancel currently running discovery (if any)
@@ -152,7 +152,10 @@ public class BluetoothChat extends Activity {
                 mBluetoothAdapter.startDiscovery();
                 deviceDiscoveryHandler.postDelayed(this,20000);
             }
-        },20000);
+        });
+
+
+
 
         Button showBeaconsButton = (Button) findViewById(R.id.showBeaconsButton);
         showBeaconsButton.setOnClickListener(new OnClickListener() {

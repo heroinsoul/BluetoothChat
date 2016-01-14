@@ -635,6 +635,7 @@ public class BluetoothChatService {
                         // Iterate through the list of received beacons
                         // and remove the bytes garbage at the last line
                         // as well as ignore the GET_BEACONS first line
+
                         // Add them to the receivedBeacons array list
                         for (int s=1; s<separated.length-1; s++) {
                             receivedBeacons.add(separated[s]);
