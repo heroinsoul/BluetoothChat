@@ -210,11 +210,8 @@ public class BluetoothChat extends Activity {
         }
     }
 
-    private void processDevicelist() {
 
-    }
-
-    List<String> deviceList = new ArrayList<String>();
+    List<String> btChatClientsList = new ArrayList<String>();
 
     // The BroadcastReceiver that listens for discovered devices and
     // changes the title when discovery is finished
@@ -232,7 +229,7 @@ public class BluetoothChat extends Activity {
                     beaconMap.put(device.getAddress(), device.getName());
                 }
 
-                // If the discovered device is BTChat client, initiate insecure connection
+                // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
                 if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
                     Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
 //                    synchronized (BluetoothChat.this) {
@@ -241,15 +238,15 @@ public class BluetoothChat extends Activity {
 //                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, device.getAddress());
 //                        connectDevice(deviceIntent, false);
 //                    }
-                    deviceList.add(device.getAddress());
+                    btChatClientsList.clear();
+                    btChatClientsList.add(device.getAddress());
                 }
-                // When discovery is finished, change the Activity title
             }
 
-            // Receive and process notification of discovery process finish
+            // When the discovery is finished process the list of discovered BTChat clients
             else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
-                processDevicelist();
+                processBTChatlist();
 //                setProgressBarIndeterminateVisibility(false);
 //                setTitle(R.string.select_device);
 //                if (mNewDevicesArrayAdapter.getCount() == 0) {
@@ -261,7 +258,15 @@ public class BluetoothChat extends Activity {
         }
     };
 
-
+    // Process the list of detected BTChat devices after the each discovery
+    //
+    private void processBTChatlist() {
+        mConversationArrayAdapter.clear();
+        int listSize = btChatClientsList.size();
+        for (int i=0; i < listSize; i++) {
+            mConversationArrayAdapter.add(btChatClientsList.get(i));
+        }
+    }
 
     @Override
     public void onStart() {
