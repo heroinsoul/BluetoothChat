@@ -54,7 +54,7 @@ public class BluetoothChat extends Activity {
     private static final String TAG = "BluetoothChat";
     private static final boolean D = true;
 
-    // Message types sent from the BluetoothChatService Handler
+    // MessageBT types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
@@ -90,7 +90,7 @@ public class BluetoothChat extends Activity {
     public static HashMap<String, String> beaconMap = new HashMap<>();
 
     // Incoming and outgoing messages list
-    public static HashMap<Integer, com.example.android.BluetoothChat.Message> messageHashMap = new HashMap<>();
+    public static HashMap<Integer, MessageBT> messageHashMap = new HashMap<>();
 
     // List of all the beacons deployed out there. Not to confuse with
     // beaconMap, which is the list of detected beacons.
@@ -150,7 +150,7 @@ public class BluetoothChat extends Activity {
                 mBluetoothAdapter.cancelDiscovery();
                 // Run our own discovery and wait till it finishes
                 mBluetoothAdapter.startDiscovery();
-                deviceDiscoveryHandler.postDelayed(this,20000);
+                deviceDiscoveryHandler.postDelayed(this, 60000);
             }
         });
 

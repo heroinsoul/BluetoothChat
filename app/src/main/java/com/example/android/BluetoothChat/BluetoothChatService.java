@@ -25,9 +25,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -652,16 +657,45 @@ public class BluetoothChatService {
                         }
                         write(readerBeacons.getBytes());
 
+                        ArrayList<MessageBT> messageList = compareBeaconsMessages(receivedBeacons);
                         // Compare received beacons list with the Messages map
-                        if (compareBeaconsMessages(receivedBeacons)) {
-                            // forward the message
-//                            write(message.getBytes());
+                        if (!messageList.isEmpty()) {
+                            // forward the messages we have for any matched beacon
+
+                            try{
+                                // Serialize data object to a byte array
+                                ByteArrayOutputStream bos = new ByteArrayOutputStream() ;
+                                ObjectOutputStream out = new ObjectOutputStream(bos) ;
+                                out.writeObject(messageList);
+                                out.close();
+
+                                // Get the bytes of the serialized object
+                                byte[] messagebuf = bos.toByteArray();
+
+                                String messageForwarded = "MSG\n";
+
+                                byte [] combined = new byte[messagebuf.length + messageForwarded.getBytes().length +1];
+                                System.arraycopy(messageForwarded.getBytes(), 0, combined, 0, messageForwarded.getBytes().length);
+                                System.arraycopy(messagebuf, 0, combined, messageForwarded.getBytes().length, messagebuf.length);
+                                System.arraycopy("\n".getBytes(), 0, combined, messageForwarded.getBytes().length + messagebuf.length, 1);
+                                write(combined);
+//                                String combinedString = new String(combined);
+//                                if (combinedString.charAt(combinedString.length()-1) == '\n') {
+//                                    Log.d(TAG, "#############  This is the message we send: " + combinedString.split("\n").length);
+//                                }
+//                                else {
+//                                    Log.d(TAG, " @@@@@@ DIDNT WORK");
+//                                }
+                            } catch (IOException e) {
+                            }
+
                         }
 
                         // Start the service over to restart listening mode
                         BluetoothChatService.this.start();
                         break;
                     }
+
 
                     //WRITER
                     if(receivedMsg.contains("BEACONS-REPLY")) {
@@ -680,13 +714,41 @@ public class BluetoothChatService {
                             receivedBeacons.add(separated[s]);
                         }
 
-                        // Check if we have a message to forward
-                        // Compare received beacons list with the Messages map
-                        if (compareBeaconsMessages(receivedBeacons)) {
-                            // forward the message
-//                            write(message.getBytes());
-                        }
+//                        BluetoothChatService.this.start();
+//                        break;
+                    }
 
+
+                    // Process incoming message
+                    if (receivedMsg.contains("MSG")) {
+
+                        Log.d(TAG, " $@#$#@$#@$#@$#@$#@$ RECEIVED MSG MESSAGE");
+                        // Check if message is for us
+                        // ...
+                        // if yes display it
+//                        mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
+//                                .sendToTarget();
+//                        // if not, store the message in hashmap
+//                        // Start from splitting the message
+//                        String[] separated = receivedMsg.split("\n");
+//
+//                        // Add the message into the existing MessageBT hashmap
+//                        for (int s=1; s<separated.length-1; s++) {
+////                            BluetoothChat.messageHashMap.put(separated[s].getId(),separated[s])
+//                            Log.d(TAG, "receivedMsg = " + separated[s]);
+//                        }
+
+                        // Check if we have a MSG to send or if we have already done that
+                        // if yes send it
+                        // if no send DISCONNECT msg
+//                        BluetoothChatService.this.start();
+//                        break;
+
+                    }
+
+
+                    // Disconnect the active thread only if DISCONNECT message received
+                    if (receivedMsg.contains("DISCONNECT")) {
                         BluetoothChatService.this.start();
                         break;
                     }
@@ -694,35 +756,6 @@ public class BluetoothChatService {
                     // Send the obtained bytes to the UI Activity
                     mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
-
-                    // Process incoming message
-                    if (receivedMsg.contains("MSG")) {
-                        // Check if message is for us
-                        // ...
-                        // if yes display it
-                        mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-                                .sendToTarget();
-                        // if not, store the message in hashmap
-                        // Start from splitting the message
-                        String[] separated = receivedMsg.split("\n");
-
-                        // Add the message into the existing Message hashmap
-                        for (int s=1; s<separated.length-1; s++) {
-//                            BluetoothChat.messageHashMap.put(separated[s].getId(),separated[s])
-                            Log.d(TAG, "receivedMsg = " + separated[s]);
-                        }
-
-                        // Check if we have a MSG to send or if we have already done that
-                        // if yes send it
-                        // if no send DISCONNECT msg
-
-                    }
-
-                    // Disconnect the active thread only if DISCONNECT message received
-                    if (receivedMsg.contains("DISCONNECT")) {
-                        BluetoothChatService.this.start();
-                        break;
-                    }
 
 
                 } catch (IOException e) {
@@ -736,10 +769,14 @@ public class BluetoothChatService {
         }
 
 
-        public boolean compareBeaconsMessages(ArrayList <String> beaconslist) {
-//            if (match) {
-                return true;
-//            }
+        public ArrayList<MessageBT> compareBeaconsMessages(ArrayList <String> beaconslist) {
+            ArrayList<MessageBT> messageList = new ArrayList<>();
+            for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
+                if (beaconslist.contains(msg.getValue().getBeaconId())) {
+                    messageList.add(msg.getValue());
+                }
+            }
+            return messageList;
         }
 
         /**

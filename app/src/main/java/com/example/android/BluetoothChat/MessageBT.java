@@ -4,12 +4,13 @@ import android.os.Bundle;
 import android.util.Log;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by holod on 12/10/15.
  */
-public class Message {
+public class MessageBT implements Serializable{
 
     private int id;
     private String text;
@@ -19,7 +20,7 @@ public class Message {
     private static int messageCount;
 
 
-    public Message(String text, String destination, String beaconId) {
+    public MessageBT(String text, String destination, String beaconId) {
         this.id = messageCount++;
         this.text = text;
         this.destination = destination;
