@@ -1,11 +1,7 @@
 package com.example.android.BluetoothChat;
 
-import android.os.Bundle;
-import android.util.Log;
-
-
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Created by holod on 12/10/15.
@@ -21,7 +17,10 @@ public class MessageBT implements Serializable{
 
 
     public MessageBT(String text, String destination, String beaconId) {
-        this.id = messageCount++;
+//        this.id = messageCount++;
+        Random r = new Random();
+        int randNum = r.nextInt(10000 - 1 + 1) + 1;
+        this.id = randNum;
         this.text = text;
         this.destination = destination;
         this.beaconId = beaconId;

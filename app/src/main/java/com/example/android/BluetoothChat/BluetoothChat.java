@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -39,12 +40,13 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.os.Message;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * This is the main Activity that displays the current chat session.
@@ -106,6 +108,15 @@ public class BluetoothChat extends Activity {
 
     private Button discoverButton;
 
+    public int randomInteger(int min, int max) {
+
+        Random rand = new Random();
+
+        // nextInt excludes the top value so we have to add 1 to include the top value
+        int randomNum = rand.nextInt((max - min) + 1) + min;
+
+        return randomNum;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -140,6 +151,8 @@ public class BluetoothChat extends Activity {
         }
 
 
+
+
         // Snippet to run the discovery process every 20 seconds
         // considering it only takes 12 sec to finish the discovery
         final Handler deviceDiscoveryHandler = new Handler();
@@ -150,7 +163,9 @@ public class BluetoothChat extends Activity {
                 mBluetoothAdapter.cancelDiscovery();
                 // Run our own discovery and wait till it finishes
                 mBluetoothAdapter.startDiscovery();
-                deviceDiscoveryHandler.postDelayed(this, 60000);
+                processBTChatlist();
+                deviceDiscoveryHandler.postDelayed(this, 20000);
+//                deviceDiscoveryHandler.postDelayed(this, randomInteger(20,30)*1000);
             }
         });
 
@@ -246,16 +261,18 @@ public class BluetoothChat extends Activity {
             }
 
             // When the discovery is finished process the list of discovered BTChat clients
-            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
-                processBTChatlist();
+//            if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+//                Log.d(TAG, " ------------- DISCOVERY HAS FINISHED --------------------");
+//                Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
+//                processBTChatlist();
+
 //                setProgressBarIndeterminateVisibility(false);
 //                setTitle(R.string.select_device);
 //                if (mNewDevicesArrayAdapter.getCount() == 0) {
 //                    String noDevices = getResources().getText(R.string.none_found).toString();
 //                    mNewDevicesArrayAdapter.add(noDevices);
 //                }
-            }
+//            }
 
         }
     };
@@ -267,8 +284,11 @@ public class BluetoothChat extends Activity {
         int listSize = btChatClientsList.size();
         for (int i=0; i < listSize; i++) {
 //            mConversationArrayAdapter.add(btChatClientsList.get(i));
+            Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
             Intent deviceIntent = new Intent();
             deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
+            // Set result
+            setResult(Activity.RESULT_OK, deviceIntent);
             connectDevice(deviceIntent, false);
         }
         btChatClientsList.clear();
@@ -525,9 +545,12 @@ public class BluetoothChat extends Activity {
         Intent serverIntent = null;
         switch (item.getItemId()) {
         case R.id.secure_connect_scan:
-            // Launch the DeviceListActivity to see devices and do scan
-            serverIntent = new Intent(this, DeviceListActivity.class);
-            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+//            // Launch the DeviceListActivity to see devices and do scan
+//            serverIntent = new Intent(this, DeviceListActivity.class);
+//            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+            for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
+                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + msg.getValue());
+            }
             return true;
         case R.id.insecure_connect_scan:
             // Launch the DeviceListActivity to see devices and do scan
