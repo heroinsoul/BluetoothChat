@@ -282,16 +282,21 @@ public class BluetoothChat extends Activity {
     private void processBTChatlist() {
 //        mConversationArrayAdapter.clear();
         int listSize = btChatClientsList.size();
-        for (int i=0; i < listSize; i++) {
+        if (!btChatClientsList.isEmpty()){
+            for (int i=0; i < listSize; i++) {
 //            mConversationArrayAdapter.add(btChatClientsList.get(i));
-            Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
-            Intent deviceIntent = new Intent();
-            deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
-            // Set result
-            setResult(Activity.RESULT_OK, deviceIntent);
-            connectDevice(deviceIntent, false);
+                Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
+                Intent deviceIntent = new Intent();
+                deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
+                // Set result
+                setResult(Activity.RESULT_OK, deviceIntent);
+                connectDevice(deviceIntent, false);
+            }
+            btChatClientsList.clear();
         }
-        btChatClientsList.clear();
+        else {
+            Toast.makeText(getApplicationContext(), "No other clients found", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

@@ -23,10 +23,9 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-
-    <android:uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <android:uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <android:uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:icon="@drawable/app_icon"
@@ -47,9 +46,9 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/select_device"
             android:theme="@android:style/Theme.Holo.Dialog" />
-        <activity
-            android:name="android.os.Message"
-            android:label="Write your message" />
+        <!-- <activity -->
+        <!-- android:name="android.os.Message" -->
+        <!-- android:label="Write your message"></activity> -->
         <activity android:name="com.example.android.BluetoothChat.SendMessageActivity" />
     </application>
 
