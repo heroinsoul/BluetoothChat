@@ -803,7 +803,7 @@ public class BluetoothChatService {
 //                                };
                                 // Check if we already have the message with the same ID
                                 MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
-                                if (!BluetoothChat.messageHashMap.containsValue(messageBT.getId())) {
+                                if (!BluetoothChat.messageHashMap.containsKey(messageBT.getId())) {
                                     BluetoothChat.messageHashMap.put(messageBT.getId(), msg);
                                 }
 //                                MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());

@@ -159,12 +159,13 @@ public class BluetoothChat extends Activity {
         deviceDiscoveryHandler.post(new Runnable() {
             @Override
             public void run() {
-                // First cancel currently running discovery (if any)
-                mBluetoothAdapter.cancelDiscovery();
-                // Run our own discovery and wait till it finishes
-                mBluetoothAdapter.startDiscovery();
-                processBTChatlist();
-                deviceDiscoveryHandler.postDelayed(this, 20000);
+                toggleDiscovery();
+//                // First cancel currently running discovery (if any)
+//                mBluetoothAdapter.cancelDiscovery();
+//                // Run our own discovery and wait till it finishes
+//                mBluetoothAdapter.startDiscovery();
+//                processBTChatlist();
+                deviceDiscoveryHandler.postDelayed(this, 30000);
 //                deviceDiscoveryHandler.postDelayed(this, randomInteger(20,30)*1000);
             }
         });
@@ -243,12 +244,14 @@ public class BluetoothChat extends Activity {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
-                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
+//                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
+                if (device.getName().equals("iBKS105")) {
                     beaconMap.put(device.getAddress(), device.getName());
                 }
 
                 // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
-                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
+//                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
+                if (device.getName().equals("BTChat")) {
                     Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
 //                    synchronized (BluetoothChat.this) {
 //                        // Create the result Intent and include the MAC address
@@ -261,10 +264,10 @@ public class BluetoothChat extends Activity {
             }
 
             // When the discovery is finished process the list of discovered BTChat clients
-//            if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-//                Log.d(TAG, " ------------- DISCOVERY HAS FINISHED --------------------");
-//                Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
-//                processBTChatlist();
+            if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                Log.d(TAG, " ------------- DISCOVERY HAS FINISHED --------------------");
+                Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
+                processBTChatlist();
 
 //                setProgressBarIndeterminateVisibility(false);
 //                setTitle(R.string.select_device);
@@ -272,7 +275,7 @@ public class BluetoothChat extends Activity {
 //                    String noDevices = getResources().getText(R.string.none_found).toString();
 //                    mNewDevicesArrayAdapter.add(noDevices);
 //                }
-//            }
+            }
 
         }
     };
@@ -553,8 +556,14 @@ public class BluetoothChat extends Activity {
 //            // Launch the DeviceListActivity to see devices and do scan
 //            serverIntent = new Intent(this, DeviceListActivity.class);
 //            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
-            for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
-                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + msg.getValue());
+//            for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
+//                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + msg.getValue());
+//            }
+
+            for (Integer name: messageHashMap.keySet()) {
+                String key = name.toString();
+                String value = messageHashMap.get(name).toString();
+                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + "Key: " + key + "\n" + "Value: " + value);
             }
             return true;
         case R.id.insecure_connect_scan:
