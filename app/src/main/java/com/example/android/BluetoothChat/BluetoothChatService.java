@@ -610,6 +610,7 @@ public class BluetoothChatService {
                     myDetectedBeacons += beacon.getKey() + "\n";
                 }
                 write(myDetectedBeacons.getBytes());
+                isWriter = false;
             }
 
             // Keep listening to the InputStream while connected
@@ -694,14 +695,14 @@ public class BluetoothChatService {
 //
 //                        }
 
-//                        // Start the service over to restart listening mode
+                        // Start the service over to restart listening mode
 //                        BluetoothChatService.this.start();
 //                        break;
                     }
 
 
                     //WRITER
-                    if((receivedMsg.contains("BEACONS-REPLY")) && (isWriter)){
+                    if(receivedMsg.contains("BEACONS-REPLY")){
 
                         // Send the obtained bytes to the UI Activity
                         mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
@@ -802,8 +803,9 @@ public class BluetoothChatService {
 //                                            .sendToTarget();
 //                                };
                                 // Check if we already have the message with the same ID
-                                MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
                                 if (!BluetoothChat.messageHashMap.containsKey(messageBT.getId())) {
+                                    Log.d(TAG, " --------------- MESSAGE IS NEW ---------------");
+                                    MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
                                     BluetoothChat.messageHashMap.put(messageBT.getId(), msg);
                                 }
 //                                MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
@@ -853,7 +855,7 @@ public class BluetoothChatService {
                 }
             }
 
-            isWriter = false;
+//            isWriter = false;
         }
 
 

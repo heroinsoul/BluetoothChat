@@ -159,12 +159,12 @@ public class BluetoothChat extends Activity {
         deviceDiscoveryHandler.post(new Runnable() {
             @Override
             public void run() {
-                toggleDiscovery();
 //                // First cancel currently running discovery (if any)
 //                mBluetoothAdapter.cancelDiscovery();
 //                // Run our own discovery and wait till it finishes
 //                mBluetoothAdapter.startDiscovery();
-//                processBTChatlist();
+////                processBTChatlist();
+                toggleDiscovery();
                 deviceDiscoveryHandler.postDelayed(this, 30000);
 //                deviceDiscoveryHandler.postDelayed(this, randomInteger(20,30)*1000);
             }
@@ -217,16 +217,22 @@ public class BluetoothChat extends Activity {
     private void toggleDiscovery() {
         if (D) Log.d(TAG, "toggleDiscovery()");
 
+//        // If we're already discovering, stop it
+//        if (mBluetoothAdapter.isDiscovering()) {
+//            discoverButton.setText("Start Discovery");
+//            mBluetoothAdapter.cancelDiscovery();
+//        }
+//        else {
+//            // Request discover from BluetoothAdapter
+//            discoverButton.setText("Stop Discovery");
+//            mBluetoothAdapter.startDiscovery();
+//        }
         // If we're already discovering, stop it
         if (mBluetoothAdapter.isDiscovering()) {
-            discoverButton.setText("Start Discovery");
             mBluetoothAdapter.cancelDiscovery();
         }
-        else {
-            // Request discover from BluetoothAdapter
-            discoverButton.setText("Stop Discovery");
-            mBluetoothAdapter.startDiscovery();
-        }
+        // Request discover from BluetoothAdapter
+        mBluetoothAdapter.startDiscovery();
     }
 
 
@@ -245,13 +251,13 @@ public class BluetoothChat extends Activity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
-                if (device.getName().equals("iBKS105")) {
+                if ((!device.equals(null)) && (device.getName().equals("iBKS105"))) {
                     beaconMap.put(device.getAddress(), device.getName());
                 }
 
                 // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
-                if (device.getName().equals("BTChat")) {
+                if ((!device.equals(null)) && (device.getName().equals("BTChat"))) {
                     Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
 //                    synchronized (BluetoothChat.this) {
 //                        // Create the result Intent and include the MAC address
@@ -264,7 +270,7 @@ public class BluetoothChat extends Activity {
             }
 
             // When the discovery is finished process the list of discovered BTChat clients
-            if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 Log.d(TAG, " ------------- DISCOVERY HAS FINISHED --------------------");
                 Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
                 processBTChatlist();
@@ -286,6 +292,8 @@ public class BluetoothChat extends Activity {
 //        mConversationArrayAdapter.clear();
         int listSize = btChatClientsList.size();
         if (!btChatClientsList.isEmpty()){
+            // Cancel discovery because it's costly and we're about to connect
+            mBluetoothAdapter.cancelDiscovery();
             for (int i=0; i < listSize; i++) {
 //            mConversationArrayAdapter.add(btChatClientsList.get(i));
                 Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
@@ -380,8 +388,17 @@ public class BluetoothChat extends Activity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        // Make sure we're not doing discovery anymore
+        if (mBluetoothAdapter != null) {
+            mBluetoothAdapter.cancelDiscovery();
+        }
+        // Unregister broadcast listeners
+        this.unregisterReceiver(mReceiver);
+
         // Stop the Bluetooth chat services
         if (mChatService != null) mChatService.stop();
+
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 
