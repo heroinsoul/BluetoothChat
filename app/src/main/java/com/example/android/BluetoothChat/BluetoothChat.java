@@ -42,6 +42,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -186,9 +187,9 @@ public class BluetoothChat extends Activity {
                 while (it.hasNext()) {
                     Map.Entry beacon = (Map.Entry) it.next();
                     Log.d(TAG, "THE LIST CONTAINS: " + beacon.getKey() + " - " + beacon.getValue());
-                    if (beacon.getValue().equals("iBKS105")) {
+//                    if (beacon.getValue().equals("iBKS105")) {
                         mConversationArrayAdapter.add(beacon.getKey() + " - " + beacon.getValue());
-                    }
+//                    }
                 }
             }
         });
@@ -247,32 +248,42 @@ public class BluetoothChat extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            Date now = new Date();
 
             // When discovery finds a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action))  {
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                // If it's already paired, skip it, because it's been listed already
+                if (!device.getAddress().equals(null)) {
+                    // If it's already paired, skip it, because it's been listed already
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
-                if ((device.getName() != null) && (device.getName().equals("iBKS105"))) {
-                    beaconMap.put(device.getAddress(), device.getName());
-                }
+                    Log.d(TAG, "This is a device I see: " + device.getName() + " " + device.getAddress());
+//                    if ((device.getName() != null) && (device.getName().equals("iBKS105"))) {
+////                    beaconMap.put(device.getAddress(), device.getName());
+//                        beaconMap.put(device.getAddress(), now.toString());
+//                    }
+                    // This check is only for Nuno's Nexus phone that doesn't detect the names of beacons :(
+                    for (Map.Entry<String,String> beacon : allBeacons.entrySet()) {
+                        if (device.getAddress().contains(beacon.getValue())) {
+                            beaconMap.put(device.getAddress(), now.toString());
+                        }
+                    }
 
-                // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
+                    // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
-                if ((device.getName() != null) && (device.getName().equals("BTChat"))) {
-                    Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
+                    if ((device.getName() != null) && (device.getName().equals("BTChat"))) {
+                        Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
 //                    synchronized (BluetoothChat.this) {
 //                        // Create the result Intent and include the MAC address
 //                        Intent deviceIntent = new Intent();
 //                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, device.getAddress());
 //                        connectDevice(deviceIntent, false);
 //                    }
-                    // test
-                    if (!btChatClientsList.contains(device.getAddress())) {
-                        btChatClientsList.add(device.getAddress());
-                    }
+                        if (!btChatClientsList.contains(device.getAddress())) {
+                            btChatClientsList.add(device.getAddress());
+                        }
 
+                    }
                 }
             }
 

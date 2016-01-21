@@ -609,7 +609,7 @@ public class BluetoothChatService {
                 Iterator it = BluetoothChat.beaconMap.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry beacon = (Map.Entry) it.next();
-                    myDetectedBeacons += beacon.getKey() + "\n";
+                    myDetectedBeacons += beacon.getKey() + " " + beacon.getValue() + "\n";
                 }
                 write(myDetectedBeacons.getBytes());
                 isWriter = false;
@@ -660,7 +660,7 @@ public class BluetoothChatService {
                         Iterator it = BluetoothChat.beaconMap.entrySet().iterator();
                         while (it.hasNext()) {
                             Map.Entry beacon = (Map.Entry) it.next();
-                            readerBeacons += beacon.getKey() + "\n";
+                            readerBeacons += beacon.getKey() + " " + beacon.getValue() + "\n";
                         }
                         write(readerBeacons.getBytes());
 
@@ -722,7 +722,9 @@ public class BluetoothChatService {
 
                         // Add them to the receivedBeacons array list
                         for (int s=1; s<separated.length-1; s++) {
-                            receivedBeacons.add(separated[s]);
+                            String[] word = separated[s].split(" ");
+//                            receivedBeacons.add(separated[s]);
+                            receivedBeacons.add(word[0]);
                         }
 
                         // Check if we have a message to forward to this device
@@ -746,6 +748,7 @@ public class BluetoothChatService {
                                 System.arraycopy(messagebuf, 0, combined, messageForwarded.getBytes().length, messagebuf.length);
                                 System.arraycopy("\n".getBytes(), 0, combined, messageForwarded.getBytes().length + messagebuf.length, 1);
                                 write(combined);
+                                receivedBeacons.clear();
 //                                String combinedString = new String(combined);
 //                                if (combinedString.charAt(combinedString.length()-1) == '\n') {
 //                                    Log.d(TAG, "#############  This is the message we send: " + combinedString.split("\n").length);
