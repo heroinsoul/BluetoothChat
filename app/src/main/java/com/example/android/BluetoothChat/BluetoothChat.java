@@ -159,16 +159,19 @@ public class BluetoothChat extends Activity {
         deviceDiscoveryHandler.post(new Runnable() {
             @Override
             public void run() {
-//                // First cancel currently running discovery (if any)
-//                mBluetoothAdapter.cancelDiscovery();
-//                // Run our own discovery and wait till it finishes
-//                mBluetoothAdapter.startDiscovery();
-////                processBTChatlist();
                 toggleDiscovery();
-                deviceDiscoveryHandler.postDelayed(this, 30000);
-//                deviceDiscoveryHandler.postDelayed(this, randomInteger(20,30)*1000);
+                deviceDiscoveryHandler.postDelayed(this, 20000);
             }
         });
+
+//        final Handler deviceConnectionHandler = new Handler();
+//        deviceConnectionHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                processBTChatlist();
+//                deviceConnectionHandler.postDelayed(this,15000);
+//            }
+//        });
 
 
 
@@ -246,18 +249,18 @@ public class BluetoothChat extends Activity {
             String action = intent.getAction();
 
             // When discovery finds a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            if (BluetoothDevice.ACTION_FOUND.equals(action))  {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
-                if ((!device.equals(null)) && (device.getName().equals("iBKS105"))) {
+                if ((device.getName() != null) && (device.getName().equals("iBKS105"))) {
                     beaconMap.put(device.getAddress(), device.getName());
                 }
 
                 // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
-                if ((!device.equals(null)) && (device.getName().equals("BTChat"))) {
+                if ((device.getName() != null) && (device.getName().equals("BTChat"))) {
                     Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
 //                    synchronized (BluetoothChat.this) {
 //                        // Create the result Intent and include the MAC address
@@ -265,7 +268,10 @@ public class BluetoothChat extends Activity {
 //                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, device.getAddress());
 //                        connectDevice(deviceIntent, false);
 //                    }
-                    btChatClientsList.add(device.getAddress());
+                    if (!btChatClientsList.contains(device.getAddress())) {
+                        btChatClientsList.add(device.getAddress());
+                    }
+
                 }
             }
 
@@ -274,6 +280,7 @@ public class BluetoothChat extends Activity {
                 Log.d(TAG, " ------------- DISCOVERY HAS FINISHED --------------------");
                 Toast.makeText(context, "Discovery finished", Toast.LENGTH_SHORT).show();
                 processBTChatlist();
+            }
 
 //                setProgressBarIndeterminateVisibility(false);
 //                setTitle(R.string.select_device);
@@ -281,7 +288,6 @@ public class BluetoothChat extends Activity {
 //                    String noDevices = getResources().getText(R.string.none_found).toString();
 //                    mNewDevicesArrayAdapter.add(noDevices);
 //                }
-            }
 
         }
     };

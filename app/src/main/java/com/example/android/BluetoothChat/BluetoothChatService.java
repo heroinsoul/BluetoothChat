@@ -194,7 +194,7 @@ public class BluetoothChatService {
 
         String []deviceList = deviceListString.split(",");
 
-        isWriter = true;
+//        isWriter = true;
 
         for (String address : deviceList) {
             // Get the BluetoothDevice object
@@ -242,6 +242,7 @@ public class BluetoothChatService {
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice
             device, final String socketType) {
         if (D) Log.d(TAG, "connected, Socket Type:" + socketType);
+
 
         Log.d(TAG, "before cancelling threads");
         // Cancel the thread that completed the connection
@@ -470,6 +471,7 @@ public class BluetoothChatService {
 //                } else {
                     tmp = device.createInsecureRfcommSocketToServiceRecord(
                             MY_UUID_INSECURE);
+                    isWriter = true;
 //                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "create() failed", e);
@@ -805,13 +807,10 @@ public class BluetoothChatService {
                                 // Check if we already have the message with the same ID
                                 if (!BluetoothChat.messageHashMap.containsKey(messageBT.getId())) {
                                     Log.d(TAG, " --------------- MESSAGE IS NEW ---------------");
-                                    MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
-                                    BluetoothChat.messageHashMap.put(messageBT.getId(), msg);
+//                                    MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
+//                                    BluetoothChat.messageHashMap.put(messageBT.getId(), msg);
+                                    BluetoothChat.messageHashMap.put(messageBT.getId(), messageBT);
                                 }
-//                                MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
-//                                Log.d(TAG, " ----------------------- THIS is messageBT.getID(): " + messageBT.getId());
-//                                Log.d(TAG, " ----------------------- THIS is msg.getID(): " + msg.getId());
-//                                BluetoothChat.messageHashMap.put(msg.getId(), msg);
                             }
 
                         } catch (Exception e){
@@ -863,11 +862,13 @@ public class BluetoothChatService {
             ArrayList<MessageBT> messageList = new ArrayList<>();
             for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
                 if (beaconslist.contains(msg.getValue().getBeaconId())) {
+                    Log.d(TAG, " -------- THIS IS THE MESSAGE I SEND: " + "ID: " + msg.getValue().getId() + "\n" + "Value: " + msg.getValue());
                     messageList.add(msg.getValue());
                 }
             }
             return messageList;
         }
+
 
         /**
          *  to the connected OutStream.
