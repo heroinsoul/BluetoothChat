@@ -268,6 +268,7 @@ public class BluetoothChat extends Activity {
 //                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, device.getAddress());
 //                        connectDevice(deviceIntent, false);
 //                    }
+                    // test
                     if (!btChatClientsList.contains(device.getAddress())) {
                         btChatClientsList.add(device.getAddress());
                     }
