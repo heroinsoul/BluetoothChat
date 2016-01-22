@@ -753,6 +753,15 @@ public class BluetoothChatService {
 //                                else {
 //                                    Log.d(TAG, " @@@@@@ DIDNT WORK");
 //                                }
+
+                                Log.d(TAG, " ------------------ BEFORE UPDATING THE SPRAY COUNT ------------");
+                                // Update the spraycount of messages we just forwarded
+                                for (MessageBT msg: messageList) {
+                                    BluetoothChat.messageHashMap.get(msg.getId()).setSprayCount(1);
+                                }
+
+                                Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
+
                             } catch (IOException e) {
                             }
                         }
@@ -810,6 +819,9 @@ public class BluetoothChatService {
 //                                    MessageBT msg = new MessageBT(messageBT.getText(), messageBT.getDestination(), messageBT.getBeaconId());
 //                                    BluetoothChat.messageHashMap.put(messageBT.getId(), msg);
                                     BluetoothChat.messageHashMap.put(messageBT.getId(), messageBT);
+                                    // Set spray count=1 for direct delivery to destination
+                                    // Since message was forwarded to us already
+                                    BluetoothChat.messageHashMap.get(messageBT.getId()).setSprayCount(1);
                                 }
                             }
 
@@ -861,7 +873,9 @@ public class BluetoothChatService {
         public ArrayList<MessageBT> compareBeaconsMessages(ArrayList <String> beaconslist) {
             ArrayList<MessageBT> messageList = new ArrayList<>();
             for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
-                if (beaconslist.contains(msg.getValue().getBeaconId())) {
+                // Look for messages that are intended for any of the received beacons
+                // Consider number of times the messages has been already forwarded (max 1 for now)
+                if ((beaconslist.contains(msg.getValue().getBeaconId())) && (msg.getValue().getSprayCount()<1)) {
                     Log.d(TAG, " -------- THIS IS THE MESSAGE I SEND: " + "ID: " + msg.getValue().getId() + "\n" + "Value: " + msg.getValue());
                     messageList.add(msg.getValue());
                 }

@@ -575,7 +575,7 @@ public class BluetoothChat extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent serverIntent = null;
         switch (item.getItemId()) {
-        case R.id.secure_connect_scan:
+            case R.id.secure_connect_scan:
 //            // Launch the DeviceListActivity to see devices and do scan
 //            serverIntent = new Intent(this, DeviceListActivity.class);
 //            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
@@ -583,21 +583,23 @@ public class BluetoothChat extends Activity {
 //                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + msg.getValue());
 //            }
 
-            for (Integer name: messageHashMap.keySet()) {
-                String key = name.toString();
-                String value = messageHashMap.get(name).toString();
-                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + "Key: " + key + "\n" + "Value: " + value);
-            }
-            return true;
-        case R.id.insecure_connect_scan:
-            // Launch the DeviceListActivity to see devices and do scan
-            serverIntent = new Intent(this, DeviceListActivity.class);
-            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
-            return true;
-        case R.id.discoverable:
-            // Ensure this device is discoverable by others
-            ensureDiscoverable();
-            return true;
+                for (Integer name: messageHashMap.keySet()) {
+                    String key = name.toString();
+                    String value = messageHashMap.get(name).toString();
+                    mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + "Key: " + key +
+                            "\n" + "Spray count: " + messageHashMap.get(name).getSprayCount() +
+                            "\n" + "Value: " + value);
+                }
+                return true;
+            case R.id.insecure_connect_scan:
+                // Launch the DeviceListActivity to see devices and do scan
+                serverIntent = new Intent(this, DeviceListActivity.class);
+                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
+                return true;
+            case R.id.discoverable:
+                // Ensure this device is discoverable by others
+                ensureDiscoverable();
+                return true;
         }
         return false;
     }
