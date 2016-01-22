@@ -2,6 +2,7 @@
 *.apk
 *.ap_
 /*/build/
+app/build/outputs/apk
 
 # Files for the Dalvik VM
 *.dex
