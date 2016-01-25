@@ -631,7 +631,7 @@ public class BluetoothChatService {
 //                            .sendToTarget();
 
                     //READER
-                    if(receivedMsg.contains("GET-BEACONS")) {
+                    if(receivedMsg.startsWith("GET-BEACONS")) {
 
                         Log.d(TAG, " -----#########----- GOT A BEACON REQUEST!");
 
@@ -704,7 +704,7 @@ public class BluetoothChatService {
 
 
                     //WRITER
-                    if(receivedMsg.contains("BEACONS-REPLY")){
+                    if(receivedMsg.startsWith("BEACONS-REPLY")){
 
                         // Send the obtained bytes to the UI Activity
                         mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
@@ -776,28 +776,19 @@ public class BluetoothChatService {
 
 
                     // Process incoming message
-                    if (receivedMsg.contains("MSG")) {
+                    if (receivedMsg.startsWith("MSG")) {
 
                         Log.d(TAG, " -----#########----- RECEIVED MSG MESSAGE");
                         // Check if message is for us
                         // ...
+                        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                         // if yes display it
                         mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
                                 .sendToTarget();
-//                        // if not, store the message in hashmap
-//                        // Start from splitting the message
-                        String[] msgLines = receivedMsg.split("\n");
-//
-//                        // Add the message into the existing MessageBT hashmap
-                        for (int s=1; s<msgLines.length-1; s++) {
-//                            BluetoothChat.messageHashMap.put(MessageBT.getId(),msgLines[s])
-                            Log.d(TAG, "THIS IS THE MESSAGE RECEIVED = " + msgLines[s]);
-                        }
+                        // if not, store the message in hashmap
 
-                        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-                        byte[] combined = new byte[msgLines[1].length()];
-                        System.arraycopy(buffer, 4, combined, 0, msgLines[1].length());
+                        byte[] combined = new byte[buffer.length-4];
+                        System.arraycopy(buffer, 4, combined, 0, buffer.length-4);
 
                         ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(combined));
                         try {
@@ -806,13 +797,6 @@ public class BluetoothChatService {
                             ois.close();
                             for (MessageBT messageBT: list) {
                                 Log.d(TAG, " Message content: " + "ID " + messageBT.getId() + " " + "Dest" +" " + messageBT.getDestination() + "Text" + " " + messageBT.getText() + " " + "Beacon ID" + " " + messageBT.getBeaconId());
-                                 // Check if the message is for us
-                                // Get local Bluetooth adapter
-//                                if (messageBT.getDestination().equals(mBluetoothAdapter.getAddress())) {
-//                                    // if yes display the message
-//                                    mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-//                                            .sendToTarget();
-//                                };
                                 // Check if we already have the message with the same ID
                                 if (!BluetoothChat.messageHashMap.containsKey(messageBT.getId())) {
                                     Log.d(TAG, " --------------- MESSAGE IS NEW ---------------");
@@ -828,11 +812,6 @@ public class BluetoothChatService {
                         } catch (Exception e){
                             e.printStackTrace();
                         }
-
-//                        // Send the obtained bytes to the UI Activity
-//                        mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-//                                .sendToTarget();
-
 
                         // Check if we have a MSG to send or if we have already done that
                         // if yes send it
