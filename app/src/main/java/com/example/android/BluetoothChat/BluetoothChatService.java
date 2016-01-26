@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +35,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -224,8 +226,8 @@ public class BluetoothChatService {
                 setState(STATE_CONNECTING);
             }
 
-//            break;
-            while(mState != STATE_LISTEN);
+            break;
+//            while(mState != STATE_LISTEN);
         }
 
     }
@@ -471,7 +473,7 @@ public class BluetoothChatService {
 //                } else {
                     tmp = device.createInsecureRfcommSocketToServiceRecord(
                             MY_UUID_INSECURE);
-                    isWriter = true;
+//                    isWriter = true;
 //                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "create() failed", e);
@@ -493,6 +495,7 @@ public class BluetoothChatService {
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
 //                Log.d(TAG, "Before socket connect");
+                isWriter = true;
                 mmSocket.connect();
 //                Log.d(TAG, "After socket connect");
             } catch (IOException e) {
