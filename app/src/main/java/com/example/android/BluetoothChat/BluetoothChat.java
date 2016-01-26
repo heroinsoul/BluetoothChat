@@ -56,6 +56,8 @@ public class BluetoothChat extends Activity {
     private static final String TAG = "BluetoothChat";
     private static final boolean D = true;
 
+    private boolean messageReady = false;
+
     // MessageBT types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
@@ -300,30 +302,33 @@ public class BluetoothChat extends Activity {
     private void processBTChatlist() {
 //        mConversationArrayAdapter.clear();
         int listSize = btChatClientsList.size();
-        if (!btChatClientsList.isEmpty()){
-
-            // First check if we have messages to forward and if their SprayCount = 0
-            if (!messageHashMap.isEmpty()) {
-                for (Integer key : messageHashMap.keySet()) {
-                    if (messageHashMap.get(key).getSprayCount()==0) {
-                        // If all good initiate connection to a device(-s)
-
-                        // Cancel discovery because it's costly and we're about to connect
-                        mBluetoothAdapter.cancelDiscovery();
-                        for (int i=0; i < listSize; i++) {
-            //            mConversationArrayAdapter.add(btChatClientsList.get(i));
-                            Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
-                            Intent deviceIntent = new Intent();
-                            deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
-                            // Set result
-                            setResult(Activity.RESULT_OK, deviceIntent);
-                            connectDevice(deviceIntent, false);
-                        }
-                        btChatClientsList.clear();
-                    }
+        // Check if other clients were detected
+        // If yes, check if we have messages to forward
+        if ((!btChatClientsList.isEmpty()) && (!messageHashMap.isEmpty())){
+            // Check if we have messages with SprayCount = 0
+            for (Integer key : messageHashMap.keySet()) {
+                if (messageHashMap.get(key).getSprayCount() == 0) {
+                    messageReady = true;
+                    break; // at least one is enough
                 }
             }
 
+            if (messageReady) {
+                // If all good initiate connection to a device(-s)
+
+                // Cancel discovery because it's costly and we're about to connect
+//                mBluetoothAdapter.cancelDiscovery();
+                for (int i=0; i < listSize; i++) {
+                    Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
+                    Intent deviceIntent = new Intent();
+                    deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
+                    // Set result
+                    setResult(Activity.RESULT_OK, deviceIntent);
+                    connectDevice(deviceIntent, false);
+                }
+                btChatClientsList.clear();
+                messageReady = false;
+            }
         }
         else {
             Toast.makeText(getApplicationContext(), "No other clients found", Toast.LENGTH_SHORT).show();
