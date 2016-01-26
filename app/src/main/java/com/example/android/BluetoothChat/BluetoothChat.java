@@ -106,6 +106,9 @@ public class BluetoothChat extends Activity {
         };
     };
 
+    // Create an array of devices I'm connecting to
+    public static ArrayList<ForwardList> forwardListArray = new ArrayList<>();
+
     private Button discoverButton;
 
     public int randomInteger(int min, int max) {
@@ -298,18 +301,29 @@ public class BluetoothChat extends Activity {
 //        mConversationArrayAdapter.clear();
         int listSize = btChatClientsList.size();
         if (!btChatClientsList.isEmpty()){
-            // Cancel discovery because it's costly and we're about to connect
-            mBluetoothAdapter.cancelDiscovery();
-            for (int i=0; i < listSize; i++) {
-//            mConversationArrayAdapter.add(btChatClientsList.get(i));
-                Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
-                Intent deviceIntent = new Intent();
-                deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
-                // Set result
-                setResult(Activity.RESULT_OK, deviceIntent);
-                connectDevice(deviceIntent, false);
+
+            // First check if we have messages to forward and if their SprayCount = 0
+            if (!messageHashMap.isEmpty()) {
+                for (Integer key : messageHashMap.keySet()) {
+                    if (messageHashMap.get(key).getSprayCount()==0) {
+                        // If all good initiate connection to a device(-s)
+
+                        // Cancel discovery because it's costly and we're about to connect
+                        mBluetoothAdapter.cancelDiscovery();
+                        for (int i=0; i < listSize; i++) {
+            //            mConversationArrayAdapter.add(btChatClientsList.get(i));
+                            Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
+                            Intent deviceIntent = new Intent();
+                            deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
+                            // Set result
+                            setResult(Activity.RESULT_OK, deviceIntent);
+                            connectDevice(deviceIntent, false);
+                        }
+                        btChatClientsList.clear();
+                    }
+                }
             }
-            btChatClientsList.clear();
+
         }
         else {
             Toast.makeText(getApplicationContext(), "No other clients found", Toast.LENGTH_SHORT).show();
