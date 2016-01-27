@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Created by holod on 1/26/16.
  */
-public class ForwardList {
+public class ForwardList implements Comparable<ForwardList> {
     public String deviceMac;
     public String beaconId;
     public Date time;
@@ -16,6 +16,15 @@ public class ForwardList {
         this.beaconId = beaconId;
         this.time = time;
         this.messageKey = messageKey;
+    }
+
+    @Override
+    public int compareTo(ForwardList other) {
+        int i = this.beaconId.compareTo(other.beaconId);
+        if (i==0) {
+            return this.time.compareTo(other.time);
+        }
+        return i;
     }
 };
 
