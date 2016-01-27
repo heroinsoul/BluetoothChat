@@ -41,6 +41,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -56,6 +57,8 @@ public class BluetoothChat extends Activity {
     // Debugging
     private static final String TAG = "BluetoothChat";
     private static final boolean D = true;
+
+    private boolean messageReady = false;
 
     // MessageBT types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -90,7 +93,7 @@ public class BluetoothChat extends Activity {
     private BluetoothChatService mChatService = null;
 
     // List of detected beacons
-    public static HashMap<String, String> beaconMap = new HashMap<>();
+    public static HashMap<String, Date> beaconMap = new HashMap<>();
 
     // Incoming and outgoing messages list
     public static HashMap<Integer, MessageBT> messageHashMap = new HashMap<>();
@@ -106,6 +109,9 @@ public class BluetoothChat extends Activity {
             put("5th floor","DF:8B:3E:EE:C6:1C");
         };
     };
+
+    // Create an array of devices I'm connecting to
+    public static ArrayList<ForwardList> forwardListArray = new ArrayList<>();
 
     private Button discoverButton;
 
@@ -251,39 +257,29 @@ public class BluetoothChat extends Activity {
             Date now = new Date();
 
             // When discovery finds a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            if (BluetoothDevice.ACTION_FOUND.equals(action))  {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (!device.getAddress().equals(null)) {
-                    // If it's already paired, skip it, because it's been listed already
+                // If it's already paired, skip it, because it's been listed already
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
-                    Log.d(TAG, "This is a device I see: " + device.getName() + " " + device.getAddress());
-//                    if ((device.getName() != null) && (device.getName().equals("iBKS105"))) {
-////                    beaconMap.put(device.getAddress(), device.getName());
-//                        beaconMap.put(device.getAddress(), now.toString());
-//                    }
-                    // This check is only for Nuno's Nexus phone that doesn't detect the names of beacons :(
-                    for (Map.Entry<String,String> beacon : allBeacons.entrySet()) {
-                        if (device.getAddress().contains(beacon.getValue())) {
-                            beaconMap.put(device.getAddress(), now.toString());
-                        }
-                    }
+                if ((device.getName() != null) && (device.getName().equals("iBKS105"))) {
+                    beaconMap.put(device.getAddress(), now);
+                }
 
-                    // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
+                // If the discovered device is BTChat client, add its MAC address to the list of discovered clients
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("BTChat"))) {
-                    if ((device.getName() != null) && (device.getName().equals("BTChat"))) {
-                        Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
+                if ((device.getName() != null) && (device.getName().equals("BTChat"))) {
+                    Log.d(TAG, "Device detected: " + device.getName() + " " + device.getAddress());
 //                    synchronized (BluetoothChat.this) {
 //                        // Create the result Intent and include the MAC address
 //                        Intent deviceIntent = new Intent();
 //                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, device.getAddress());
 //                        connectDevice(deviceIntent, false);
 //                    }
-                        if (!btChatClientsList.contains(device.getAddress())) {
-                            btChatClientsList.add(device.getAddress());
-                        }
-
+                    if (!btChatClientsList.contains(device.getAddress())) {
+                        btChatClientsList.add(device.getAddress());
                     }
+
                 }
             }
 
@@ -309,19 +305,75 @@ public class BluetoothChat extends Activity {
     private void processBTChatlist() {
 //        mConversationArrayAdapter.clear();
         int listSize = btChatClientsList.size();
-        if (!btChatClientsList.isEmpty()){
-            // Cancel discovery because it's costly and we're about to connect
-            mBluetoothAdapter.cancelDiscovery();
-            for (int i=0; i < listSize; i++) {
-//            mConversationArrayAdapter.add(btChatClientsList.get(i));
-                Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
-                Intent deviceIntent = new Intent();
-                deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
-                // Set result
-                setResult(Activity.RESULT_OK, deviceIntent);
-                connectDevice(deviceIntent, false);
+        // Check if other clients were detected
+        // If yes, check if we have messages to forward
+        if ((!btChatClientsList.isEmpty()) && (!messageHashMap.isEmpty())){
+            // Check if we have messages with SprayCount = 0
+            for (Integer key : messageHashMap.keySet()) {
+                if (messageHashMap.get(key).getSprayCount() == 0) {
+                    messageReady = true;
+                    break; // at least one is enough
+                }
             }
-            btChatClientsList.clear();
+
+            if (messageReady) {
+                // If all good initiate connection to a device(-s)
+
+                // Cancel discovery because it's costly and we're about to connect
+//                mBluetoothAdapter.cancelDiscovery();
+                if (listSize>1) {
+                    // Request beacon data from detected devices
+                    for (int i=0; i < listSize; i++) {
+                        Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
+                        Intent deviceIntent = new Intent();
+                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
+                        // Set result
+                        setResult(Activity.RESULT_OK, deviceIntent);
+                        connectDevice(deviceIntent, false);
+                    }
+
+                    // Now select the best devices to forward the message to
+
+                    // First check if forwardListArray is not empty
+                    if (!forwardListArray.isEmpty()) {
+                        if (forwardListArray.size()>1) {
+                            SimpleDateFormat localDateFormat = new SimpleDateFormat("HH");
+                            Date currentTime = new Date();
+                            String curHour = localDateFormat.format(currentTime);
+                            for (int i=0; i<forwardListArray.size(); i++) {
+                                for (int j=i+1; j<forwardListArray.size()-1; j++) {
+                                    if (forwardListArray.get(i).beaconId.equals(forwardListArray.get(j).beaconId)) {
+                                        String iTimeHour = localDateFormat.format(forwardListArray.get(i).time);
+                                        String jTimeHour = localDateFormat.format(forwardListArray.get(j).time);
+
+
+                                    }
+                                }
+                            }
+                            for (ForwardList candidate : forwardListArray) {
+
+                            }
+                        }
+                        else {
+                            // connect to a candidate without any check
+                            // since he is the only one suitable
+                            // ...
+                        }
+                    }
+
+                }
+                // If there is only one device around - connect to it once
+                else {
+                        Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(0));
+                        Intent deviceIntent = new Intent();
+                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(0));
+                        // Set result
+                        setResult(Activity.RESULT_OK, deviceIntent);
+                        connectDevice(deviceIntent, false);
+                }
+                btChatClientsList.clear();
+                messageReady = false;
+            }
         }
         else {
             Toast.makeText(getApplicationContext(), "No other clients found", Toast.LENGTH_SHORT).show();
@@ -587,7 +639,7 @@ public class BluetoothChat extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent serverIntent = null;
         switch (item.getItemId()) {
-        case R.id.secure_connect_scan:
+            case R.id.secure_connect_scan:
 //            // Launch the DeviceListActivity to see devices and do scan
 //            serverIntent = new Intent(this, DeviceListActivity.class);
 //            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
@@ -595,21 +647,23 @@ public class BluetoothChat extends Activity {
 //                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + msg.getValue());
 //            }
 
-            for (Integer name: messageHashMap.keySet()) {
-                String key = name.toString();
-                String value = messageHashMap.get(name).toString();
-                mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + "Key: " + key + "\n" + "Value: " + value);
-            }
-            return true;
-        case R.id.insecure_connect_scan:
-            // Launch the DeviceListActivity to see devices and do scan
-            serverIntent = new Intent(this, DeviceListActivity.class);
-            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
-            return true;
-        case R.id.discoverable:
-            // Ensure this device is discoverable by others
-            ensureDiscoverable();
-            return true;
+                for (Integer name: messageHashMap.keySet()) {
+                    String key = name.toString();
+                    String value = messageHashMap.get(name).toString();
+                    mConversationArrayAdapter.add("Here is a MessageHashMap I have\n" + "Key: " + key +
+                            "\n" + "Spray count: " + messageHashMap.get(name).getSprayCount() +
+                            "\n" + "Value: " + value);
+                }
+                return true;
+            case R.id.insecure_connect_scan:
+                // Launch the DeviceListActivity to see devices and do scan
+                serverIntent = new Intent(this, DeviceListActivity.class);
+                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
+                return true;
+            case R.id.discoverable:
+                // Ensure this device is discoverable by others
+                ensureDiscoverable();
+                return true;
         }
         return false;
     }

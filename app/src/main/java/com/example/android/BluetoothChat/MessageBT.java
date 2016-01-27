@@ -12,7 +12,8 @@ public class MessageBT implements Serializable{
     private String text;
     private String destination;
     private String beaconId;
-//    private ArrayList<String> beacons;
+    private int sprayCount;
+    //    private ArrayList<String> beacons;
     private static int messageCount;
 
 
@@ -24,6 +25,8 @@ public class MessageBT implements Serializable{
         this.text = text;
         this.destination = destination;
         this.beaconId = beaconId;
+        int spraycount = 0;
+        this.sprayCount = spraycount;
 //        beacons = new ArrayList<>();
     }
 
@@ -49,7 +52,9 @@ public class MessageBT implements Serializable{
         return beaconId;
     }
 
-
+    public int getSprayCount() {
+        return sprayCount;
+    }
 
 
     public void setId(int id) {
@@ -68,6 +73,10 @@ public class MessageBT implements Serializable{
 
     public void setBeaconId(String beaconId) {
         this.beaconId = beaconId;
+    }
+
+    public void setSprayCount(int sprayCount) {
+        this.sprayCount = sprayCount;
     }
 
 //    public void setBeacons(ArrayList<String> beacons) {
