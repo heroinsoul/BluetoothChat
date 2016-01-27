@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -610,27 +609,15 @@ public class BluetoothChatService {
             String receivedMsg = null;
 
             Boolean forwardMessage = BluetoothChat.forwardMessage;
+            Boolean sevDevices = BluetoothChat.sevDevices;
 
-            if (!forwardMessage) {
-                if(isWriter)  {
-                    Log.e(TAG, "SENDING MESSAGE");
-
-                    // Send my list of detected beacons while requesting the same from other client
-                    String myDetectedBeacons = "GET-BEACONS\n";
-//                Iterator it = BluetoothChat.beaconMap.entrySet().iterator();
-//                while (it.hasNext()) {
-//                    Map.Entry beacon = (Map.Entry) it.next();
-//                    myDetectedBeacons += beacon.getKey() + " " + beacon.getValue() + "\n";
-//                }
-                    write(myDetectedBeacons.getBytes());
-                    isWriter = false;
-                }
-
+            // READER code
+            if (!isWriter) {
                 // Keep listening to the InputStream while connected
                 while (true) {
                     try {
 
-                        Log.d(TAG, "Reading from input...");
+                        Log.d(TAG, "Reading from input...reader");
                         // Read from the InputStream
                         bytes = mmInStream.read(buffer);
 
@@ -642,35 +629,15 @@ public class BluetoothChatService {
                                 .sendToTarget();
 
                         //READER
-                        if(receivedMsg.startsWith("GET-BEACONS")) {
+                        if (receivedMsg.startsWith("GET-BEACONS")) {
 
                             Log.d(TAG, " -----#########----- GOT A BEACON REQUEST!");
-
-//                            // Send the obtained bytes to the UI Activity
-//                            mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-//                                    .sendToTarget();
-
-//                        // Split received beacon list by lines
-//                        String[] separated = receivedMsg.split("\n");
-//
-//                        ArrayList<String> receivedBeacons = new ArrayList<>();
-//
-//                        // Iterate through the list of received beacons
-//                        // and remove the bytes garbage at the last line
-//                        // as well as ignore the GET_BEACONS first line
-//
-//                        // Add them to the receivedBeacons array list
-//                        for (int s=1; s<separated.length-1; s++) {
-//                            receivedBeacons.add(separated[s]);
-//                            Log.d(TAG, "-----#########----- GET-BEACON: " + separated[s]);
-//                        }
-
 
                             // Reply with my list of detected beacons
 
                             // Serialize my beacons hashmap
                             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                            ObjectOutputStream out = new ObjectOutputStream(bos) ;
+                            ObjectOutputStream out = new ObjectOutputStream(bos);
                             out.writeObject(BluetoothChat.beaconMap);
                             out.close();
 
@@ -679,44 +646,13 @@ public class BluetoothChatService {
 
                             String readerBeacons = "BEACONS-REPLY\n";
 
-                            byte [] combined = new byte[beacons.length + readerBeacons.getBytes().length];
+                            byte[] combined = new byte[beacons.length + readerBeacons.getBytes().length];
 
-                            System.arraycopy(readerBeacons.getBytes(),0,combined,0,readerBeacons.getBytes().length);
+                            System.arraycopy(readerBeacons.getBytes(), 0, combined, 0, readerBeacons.getBytes().length);
                             System.arraycopy(beacons, 0, combined, readerBeacons.getBytes().length, beacons.length);
                             write(combined);
                         }
 
-
-                        //WRITER
-                        if(receivedMsg.startsWith("BEACONS-REPLY")){
-
-//                            // Send the obtained bytes to the UI Activity
-//                            mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-//                                    .sendToTarget();
-
-                            // Process list of clients beacons
-
-                            // Deserialize received beacons hashmap
-                            byte[] inbeacons = new byte[buffer.length-14];
-                            System.arraycopy(buffer,14,inbeacons,0,buffer.length-14);
-                            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(inbeacons));
-                            try {
-                                HashMap<String,Date> receivedBeacons = (HashMap<String,Date>) ois.readObject();
-                                ois.close();
-                                Iterator it = receivedBeacons.entrySet().iterator();
-                                while (it.hasNext()) {
-                                    Map.Entry pair = (Map.Entry)it.next();
-                                    Log.d(TAG, " -------------Received beacon: Key: " + pair.getKey() + " Value: " + pair.getValue());
-                                }
-                                compareBeaconsMessages(receivedBeacons);
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            BluetoothChatService.this.start();
-                            break;
-//
-                        }
 
                         // Process incoming message
                         if (receivedMsg.startsWith("MSG")) {
@@ -730,16 +666,16 @@ public class BluetoothChatService {
                                     .sendToTarget();
                             // if not, store the message in hashmap
 
-                            byte[] combined = new byte[buffer.length-4];
-                            System.arraycopy(buffer, 4, combined, 0, buffer.length-4);
+                            byte[] combined = new byte[buffer.length - 4];
+                            System.arraycopy(buffer, 4, combined, 0, buffer.length - 4);
 
                             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(combined));
                             try {
                                 @SuppressWarnings("unchecked")
                                 ArrayList<MessageBT> list = (ArrayList<MessageBT>) ois.readObject();
                                 ois.close();
-                                for (MessageBT messageBT: list) {
-                                    Log.d(TAG, " Message content: " + "ID " + messageBT.getId() + " " + "Dest" +" " + messageBT.getDestination() + "Text" + " " + messageBT.getText() + " " + "Beacon ID" + " " + messageBT.getBeaconId());
+                                for (MessageBT messageBT : list) {
+                                    Log.d(TAG, " Message content: " + "ID " + messageBT.getId() + " " + "Dest" + " " + messageBT.getDestination() + "Text" + " " + messageBT.getText() + " " + "Beacon ID" + " " + messageBT.getBeaconId());
                                     // Check if we already have the message with the same ID
                                     if (!BluetoothChat.messageHashMap.containsKey(messageBT.getId())) {
                                         Log.d(TAG, " --------------- MESSAGE IS NEW ---------------");
@@ -752,35 +688,12 @@ public class BluetoothChatService {
                                     }
                                 }
 
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
-
-                            // Check if we have a MSG to send or if we have already done that
-                            // if yes send it
-                            // if no send DISCONNECT msg
-//                        BluetoothChatService.this.start();
-//                        break;
-//                        String disconnectMessage = "DISCONNECT\n";
-//                        write(disconnectMessage.getBytes());
-//                            BluetoothChatService.this.start();
-//                            break;
+                            BluetoothChatService.this.start();
+                            break;
                         }
-
-
-
-
-//                    // Disconnect the active thread only if DISCONNECT message received
-//                    if (receivedMsg.contains("DISCONNECT")) {
-//                        BluetoothChatService.this.start();
-//                        break;
-//                    }
-
-//                    // Send the obtained bytes to the UI Activity
-//                    mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-//                            .sendToTarget();
-
-
                     } catch (IOException e) {
                         Log.e(TAG, "disconnected", e);
                         connectionLost();
@@ -791,12 +704,221 @@ public class BluetoothChatService {
                 }
             }
 
-            // if we have already selected the best candidate to forward the message to
+            // WRITER CODE
+            else {
+                // if there are several devices
+                if (sevDevices) {
+                    //if it's a first connection round
+                    if (!forwardMessage) {
+                        Log.e(TAG, "SENDING MESSAGE");
 
-            
+                        // Send my list of detected beacons while requesting the same from other client
+                        String myDetectedBeacons = "GET-BEACONS\n";
+                        write(myDetectedBeacons.getBytes());
+
+                        // Keep listening to the InputStream while connected
+                        while (true) {
+                            try {
+                                Log.d(TAG, "Reading from input...writer several devices");
+                                // Read from the InputStream
+                                bytes = mmInStream.read(buffer);
+
+                                receivedMsg = new String(buffer);
+
+                                // Send the obtained bytes to the UI Activity
+                                mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
+                                        .sendToTarget();
 
 
-//            isWriter = false;
+                                if (receivedMsg.startsWith("BEACONS-REPLY")) {
+
+                                    // Process list of clients beacons
+
+                                    // Deserialize received beacons hashmap
+                                    byte[] inbeacons = new byte[buffer.length - 14];
+                                    System.arraycopy(buffer, 14, inbeacons, 0, buffer.length - 14);
+                                    ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(inbeacons));
+                                    try {
+                                        HashMap<String, Date> receivedBeacons = (HashMap<String, Date>) ois.readObject();
+                                        ois.close();
+                                        Iterator it = receivedBeacons.entrySet().iterator();
+                                        while (it.hasNext()) {
+                                            Map.Entry pair = (Map.Entry) it.next();
+                                            Log.d(TAG, " -------------Received beacon: Key: " + pair.getKey() + " Value: " + pair.getValue());
+                                        }
+                                        compareBeaconsMessages(receivedBeacons);
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    BluetoothChatService.this.start();
+                                    break;
+//
+                                }
+                            } catch (IOException e) {
+                                Log.e(TAG, "disconnected", e);
+                                connectionLost();
+                                // Start the service over to restart listening mode
+                                BluetoothChatService.this.start();
+                                break;
+                            }
+                        }
+                    }
+                    // else if it's a second connection round we just need to send a message
+                    // to selected devices
+                    else {
+                        String deviceMac = BluetoothChat.currentDevice;
+                        // Extract the message set
+                        String msgString = BluetoothChat.candidateConnect.get(deviceMac);
+                        String[] msgKeysArray = msgString.split(" ");
+                        ArrayList<MessageBT> messageList = new ArrayList<>();
+                        // Find the messages and add them into messageList
+                        for (String key: msgKeysArray) {
+                            Log.d(TAG, " -------- THIS IS THE MESSAGE I SEND: " + "ID: " +
+                                    BluetoothChat.messageHashMap.get(key).getId() + "\n" + "Value: "
+                                    + BluetoothChat.messageHashMap.get(key));
+                            messageList.add(BluetoothChat.messageHashMap.get(key));
+                        }
+
+                        // Send selected messages to the device
+
+                        if (!messageList.isEmpty()) {
+                            // forward the messages we have for any matched beacon
+                            try {
+                                // Serialize data object to a byte array
+                                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                                ObjectOutputStream out = new ObjectOutputStream(bos);
+                                out.writeObject(messageList);
+                                out.close();
+
+                                // Get the bytes of the serialized object
+                                byte[] messagebuf = bos.toByteArray();
+
+                                String messageForwarded = "MSG\n";
+
+                                byte[] combined = new byte[messagebuf.length + messageForwarded.getBytes().length + 1];
+                                System.arraycopy(messageForwarded.getBytes(), 0, combined, 0, messageForwarded.getBytes().length);
+                                System.arraycopy(messagebuf, 0, combined, messageForwarded.getBytes().length, messagebuf.length);
+                                System.arraycopy("\n".getBytes(), 0, combined, messageForwarded.getBytes().length + messagebuf.length, 1);
+                                write(combined);
+
+                                Log.d(TAG, " ------------------ BEFORE UPDATING THE SPRAY COUNT ------------");
+                                // Update the spraycount of messages we just forwarded
+                                for (MessageBT msg: messageList) {
+                                    BluetoothChat.messageHashMap.get(msg.getId()).setSprayCount(1);
+                                }
+
+                                Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
+
+                            } catch (IOException e) {
+                            }
+                        }
+
+                        BluetoothChatService.this.start();
+                    }
+
+                }
+                // if there is only one device
+                else {
+                    Log.e(TAG, "SENDING MESSAGE");
+
+                    // Send my list of detected beacons while requesting the same from other client
+                    String myDetectedBeacons = "GET-BEACONS\n";
+                    write(myDetectedBeacons.getBytes());
+
+                    // Keep listening to the InputStream while connected
+                    while (true) {
+                        try {
+                            Log.d(TAG, "Reading from input...writer 1 device");
+                            // Read from the InputStream
+                            bytes = mmInStream.read(buffer);
+
+                            receivedMsg = new String(buffer);
+
+                            // Send the obtained bytes to the UI Activity
+                            mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
+                                    .sendToTarget();
+
+
+                            if (receivedMsg.startsWith("BEACONS-REPLY")) {
+
+                                // Process list of clients beacons
+
+                                // Deserialize received beacons hashmap
+                                byte[] inbeacons = new byte[buffer.length - 14];
+                                System.arraycopy(buffer, 14, inbeacons, 0, buffer.length - 14);
+                                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(inbeacons));
+                                try {
+                                    HashMap<String, Date> receivedBeacons = (HashMap<String, Date>) ois.readObject();
+                                    ois.close();
+                                    Iterator it = receivedBeacons.entrySet().iterator();
+                                    while (it.hasNext()) {
+                                        Map.Entry pair = (Map.Entry) it.next();
+                                        Log.d(TAG, " -------------Received beacon: Key: " + pair.getKey() + " Value: " + pair.getValue());
+                                    }
+//                                    compareBeaconsMessages(receivedBeacons);
+                                    ArrayList<MessageBT> messageList = new ArrayList<>();
+                                    for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
+                                        // Look for messages that are intended for any of the received beacons
+                                        // Consider number of times the messages has been already forwarded (max 1 for now)
+                                        if ((receivedBeacons.containsKey(msg.getValue().getBeaconId())) && (msg.getValue().getSprayCount()<1)) {
+                                            Log.d(TAG, " -------- THIS IS THE MESSAGE I SEND: " + "ID: " + msg.getValue().getId() + "\n" + "Value: " + msg.getValue());
+                                            messageList.add(msg.getValue());
+                                        }
+                                    }
+
+                                    // Send the messages
+
+                                    if (!messageList.isEmpty()) {
+                                        // forward the messages we have for any matched beacon
+                                        try {
+                                            // Serialize data object to a byte array
+                                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                                            ObjectOutputStream out = new ObjectOutputStream(bos);
+                                            out.writeObject(messageList);
+                                            out.close();
+
+                                            // Get the bytes of the serialized object
+                                            byte[] messagebuf = bos.toByteArray();
+
+                                            String messageForwarded = "MSG\n";
+
+                                            byte[] combined = new byte[messagebuf.length + messageForwarded.getBytes().length + 1];
+                                            System.arraycopy(messageForwarded.getBytes(), 0, combined, 0, messageForwarded.getBytes().length);
+                                            System.arraycopy(messagebuf, 0, combined, messageForwarded.getBytes().length, messagebuf.length);
+                                            System.arraycopy("\n".getBytes(), 0, combined, messageForwarded.getBytes().length + messagebuf.length, 1);
+                                            write(combined);
+
+                                            Log.d(TAG, " ------------------ BEFORE UPDATING THE SPRAY COUNT ------------");
+                                            // Update the spraycount of messages we just forwarded
+                                            for (MessageBT msg: messageList) {
+                                                BluetoothChat.messageHashMap.get(msg.getId()).setSprayCount(1);
+                                            }
+
+                                            Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
+
+                                        } catch (IOException e) {
+                                        }
+                                    }
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                BluetoothChatService.this.start();
+                                break;
+//
+                            }
+                        } catch (IOException e) {
+                            Log.e(TAG, "disconnected", e);
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            BluetoothChatService.this.start();
+                            break;
+                        }
+                    }
+                }
+                isWriter = false;
+            }
         }
 
 
@@ -817,19 +939,6 @@ public class BluetoothChatService {
             }
             return;
         }
-//        public ArrayList<MessageBT> compareBeaconsMessages(ArrayList <String> beaconslist) {
-//            ArrayList<MessageBT> messageList = new ArrayList<>();
-//            for (Map.Entry<Integer, MessageBT> msg : BluetoothChat.messageHashMap.entrySet()) {
-//                // Look for messages that are intended for any of the received beacons
-//                // Consider number of times the messages has been already forwarded (max 1 for now)
-//                if ((beaconslist.contains(msg.getValue().getBeaconId())) && (msg.getValue().getSprayCount()<1)) {
-//                    Log.d(TAG, " -------- THIS IS THE MESSAGE I SEND: " + "ID: " + msg.getValue().getId() + "\n" + "Value: " + msg.getValue());
-//                    messageList.add(msg.getValue());
-//                }
-//            }
-//            return messageList;
-//        }
-
 
         /**
          *  to the connected OutStream.

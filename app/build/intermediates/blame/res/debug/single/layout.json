@@ -1,11 +1,11 @@
 [
     {
-        "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/device_list.xml",
-        "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/device_list.xml"
-    },
-    {
         "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/message_beacon.xml",
         "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/message_beacon.xml"
+    },
+    {
+        "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/device_list.xml",
+        "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/device_list.xml"
     },
     {
         "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/device_name.xml",
@@ -16,12 +16,12 @@
         "source": "/home/holod/StudioProjects/BluetoothChat/app/src/main/res/layout/message_beacon.xml"
     },
     {
-        "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/custom_title.xml",
-        "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/custom_title.xml"
-    },
-    {
         "merged": "/home/holod/StudioProjects/BluetoothChat/app/build/intermediates/res/merged/debug/layout/message.xml",
         "source": "/home/holod/StudioProjects/BluetoothChat/app/src/main/res/layout/message.xml"
+    },
+    {
+        "merged": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/build/intermediates/res/merged/debug/layout/custom_title.xml",
+        "source": "/home/holod/AndroidStudioProjects/accessory-samples/BluetoothChat1/app/src/main/res/layout/custom_title.xml"
     },
     {
         "merged": "/home/holod/StudioProjects/BluetoothChat/app/build/intermediates/res/merged/debug/layout/device_name.xml",

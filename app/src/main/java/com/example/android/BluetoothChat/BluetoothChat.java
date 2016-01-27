@@ -41,7 +41,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -62,6 +61,8 @@ public class BluetoothChat extends Activity {
     private boolean messageReady = false;
 
     public static boolean forwardMessage = false;
+    public static String currentDevice;
+    public static boolean sevDevices = false;
 
     // MessageBT types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -100,6 +101,11 @@ public class BluetoothChat extends Activity {
 
     // Incoming and outgoing messages list
     public static HashMap<Integer, MessageBT> messageHashMap = new HashMap<>();
+
+    // hashmap of best devices to send message(-s) to
+    // key = device MAC
+    // value = string with messages keys for this device
+    public static HashMap<String,String> candidateConnect = new HashMap<>();
 
     // List of all the beacons deployed out there. Not to confuse with
     // beaconMap, which is the list of detected beacons.
@@ -324,7 +330,8 @@ public class BluetoothChat extends Activity {
 
                 // Cancel discovery because it's costly and we're about to connect
 //                mBluetoothAdapter.cancelDiscovery();
-                if (listSize>1) {
+                if (listSize>1) { // if there are more than 1 device out there
+                    sevDevices = true;
                     // Request beacon data from detected devices
                     for (int i=0; i < listSize; i++) {
                         Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
@@ -353,57 +360,41 @@ public class BluetoothChat extends Activity {
                         }
                     }
 
+                    // Combine messages for the same device (if any)
                     for (String key : bestCandidates.keySet()) {
+                        if (!candidateConnect.containsKey(bestCandidates.get(key).deviceMac)) {
+                            candidateConnect.put(bestCandidates.get(key).deviceMac,String.valueOf(bestCandidates.get(key).messageKey));
+                        }
+                        else {
+                            String old = candidateConnect.get(bestCandidates.get(key).deviceMac);
+                            candidateConnect.put(bestCandidates.get(key).deviceMac, old + " " + bestCandidates.get(key).messageKey);
+                        }
+                    }
+
+                    // Connect to devices and forward the messages
+//                    for (String key : bestCandidates.keySet()) {
+                    for (String key : candidateConnect.keySet()) {
                         Intent deviceIntent = new Intent();
-                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, bestCandidates.get(key).deviceMac);
+//                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, bestCandidates.get(key).deviceMac);
+                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, key);
+                        currentDevice = key;
                         forwardMessage = true;
                         connectDevice(deviceIntent, false);
                     }
-
-
-                    // First check if forwardListArray is not empty
-//                    if (!forwardListArray.isEmpty()) {
-//                        if (forwardListArray.size()>1) {
-////                            SimpleDateFormat localDateFormat = new SimpleDateFormat("HH");
-//                            Date currentTime = new Date();
-////                            String curHour = localDateFormat.format(currentTime);
-//                            for (int i=0; i<forwardListArray.size(); i++) {
-//                                for (int j=i+1; j<forwardListArray.size(); j++) {
-//                                    if (forwardListArray.get(i).beaconId.equals(forwardListArray.get(j).beaconId)) {
-////                                        String iTimeHour = localDateFormat.format(forwardListArray.get(i).time);
-//                                        Date iTimeHour = forwardListArray.get(i).time;
-////                                        String jTimeHour = localDateFormat.format(forwardListArray.get(j).time);
-//                                        Date jTimeHour = forwardListArray.get(j).time;
-//                                        Long deltai = currentTime.getTime()-iTimeHour.getTime();
-//                                        Long deltaj = currentTime.getTime()-jTimeHour.getTime();
-//
-//
-//                                    }
-//                                }
-//                            }
-//                            for (ForwardList candidate : forwardListArray) {
-//
-//                            }
-//                        }
-//                        else {
-//                            // connect to a candidate without any check
-//                            // since he is the only one suitable
-//                            // ...
-//                        }
-//                    }
-
+                    forwardMessage = false;
+                    sevDevices = false;
                 }
                 // If there is only one device around - connect to it once
                 else {
                     Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(0));
                     Intent deviceIntent = new Intent();
                     deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(0));
-                    forwardMessage = true;
                     connectDevice(deviceIntent, false);
                 }
+                currentDevice = "";
                 btChatClientsList.clear();
                 messageReady = false;
-                forwardMessage = false;
+//                forwardMessage = false;
             }
         }
         else {
