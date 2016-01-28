@@ -105,7 +105,7 @@ public class BluetoothChat extends Activity {
     // hashmap of best devices to send message(-s) to
     // key = device MAC
     // value = string with messages keys for this device
-    public static HashMap<String,String> candidateConnect = new HashMap<>();
+    public static HashMap<String,ArrayList<Integer>> candidateConnect = new HashMap<>();
 
     // List of all the beacons deployed out there. Not to confuse with
     // beaconMap, which is the list of detected beacons.
@@ -269,6 +269,8 @@ public class BluetoothChat extends Activity {
             if (BluetoothDevice.ACTION_FOUND.equals(action))  {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                Log.d(TAG, " --------- THIS IS A DEVICE I SEE-----------" + device.getAddress() + " " + device.getName());
                 // If it's already paired, skip it, because it's been listed already
 //                if ((device.getBondState() != BluetoothDevice.BOND_BONDED) && (device.getName().equals("iBKS105"))) {
                 if ((device.getName() != null) && (device.getName().equals("iBKS105"))) {
@@ -334,13 +336,23 @@ public class BluetoothChat extends Activity {
                     sevDevices = true;
                     // Request beacon data from detected devices
                     for (int i=0; i < listSize; i++) {
-                        Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(i));
+                        Log.d(TAG, " ------------ Multiple devices detected: this is a device I'm going to connect to: " + btChatClientsList.get(i));
                         Intent deviceIntent = new Intent();
                         deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
 //                        // Set result
 //                        setResult(Activity.RESULT_OK, deviceIntent);
                         connectDevice(deviceIntent, false);
+
+
+                        try {
+                            Thread.sleep(5000);                 //1000 milliseconds is one second.
+                        } catch(InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                        }
+
                     }
+
+                    Log.d(TAG, " -----AFTER THE FIRST ROUND");
 
                     // Now select the best devices to forward the message to
 
@@ -357,19 +369,76 @@ public class BluetoothChat extends Activity {
                             if (!bestCandidates.containsKey(i.beaconId)) {
                                 bestCandidates.put(i.beaconId, i);
                             }
+                            else {
+                                // combine message keys from other entries in the forwardListArray
+                                // that are later by time
+                                ArrayList<Integer> oldMsgKeysArray = bestCandidates.get(i.beaconId).messageKey;
+                                if (!oldMsgKeysArray.contains(i.messageKey.get(0))) {
+                                    oldMsgKeysArray.add(i.messageKey.get(0));
+                                }
+                                ForwardList updatedCandidate = bestCandidates.get(i.beaconId);
+                                updatedCandidate.messageKey = oldMsgKeysArray;
+                                bestCandidates.put(i.beaconId,updatedCandidate);
+                            }
                         }
                     }
 
-                    // Combine messages for the same device (if any)
+                    for (String beaconID: bestCandidates.keySet()) {
+                        Log.d(TAG, "-------------------This is best candidates hashmap content " +
+                        "beaconID " + beaconID + " " + "Device MAC " + bestCandidates.get(beaconID).deviceMac
+                                + bestCandidates.get(beaconID).messageKey);
+
+                    }
+
+                    Log.d(TAG, " -----AFTER SELECTING THE BEST CANDIDATES");
+
+                    // Combine messages for the same device but for different beaconIDs (if any)
+
                     for (String key : bestCandidates.keySet()) {
+                        Log.d(TAG, " -----------this the current key: " + key);
                         if (!candidateConnect.containsKey(bestCandidates.get(key).deviceMac)) {
-                            candidateConnect.put(bestCandidates.get(key).deviceMac,String.valueOf(bestCandidates.get(key).messageKey));
+                            candidateConnect.put(bestCandidates.get(key).deviceMac,bestCandidates.get(key).messageKey);
                         }
                         else {
-                            String old = candidateConnect.get(bestCandidates.get(key).deviceMac);
-                            candidateConnect.put(bestCandidates.get(key).deviceMac, old + " " + bestCandidates.get(key).messageKey);
+                            ArrayList<Integer> updatedArraylist = candidateConnect.get(bestCandidates.get(key).deviceMac);
+                            Log.d(TAG, " ----------- this is an updatedArrayList content before updating -------- " + updatedArraylist);
+                            updatedArraylist.addAll(bestCandidates.get(key).messageKey);
+                            Log.d(TAG, " ----------- this is an updatedArrayList content after updating -------- " + updatedArraylist);
+//                            for (Integer msgkey : bestCandidates.get(key).messageKey) {
+//                                Log.d(TAG, " --------------- this is an element of best bestCandidates.get(key).messageKey: " + msgkey);
+//                                updatedArraylist.add(msgkey);
+//                            }
+                            candidateConnect.put(bestCandidates.get(key).deviceMac,updatedArraylist);
+
                         }
                     }
+
+                    for (String key: candidateConnect.keySet()) {
+                        Log.d(TAG, "-------------------This is candidateConnect hashmap content " +
+                                key + " " + candidateConnect.get(key));
+
+                    }
+
+//                    // Combine messages for the same device (if any)
+//                    for (String key : bestCandidates.keySet()) {
+//                        if (!candidateConnect.containsKey(bestCandidates.get(key).deviceMac)) {
+//                            ArrayList<Integer> msgArray = new ArrayList<>();
+//                            msgArray.add(bestCandidates.get(key).messageKey);
+//                            candidateConnect.put(bestCandidates.get(key).deviceMac,msgArray);
+//                        }
+//                        else {
+//                            ArrayList oldmsgArray = candidateConnect.get(bestCandidates.get(key).deviceMac);
+//                            oldmsgArray.add(bestCandidates.get(key).messageKey);
+//                            candidateConnect.put(bestCandidates.get(key).deviceMac, oldmsgArray);
+//                        }
+//                    }
+
+                    for (String key : candidateConnect.keySet()) {
+                        Log.d(TAG, "---This is a candidate connect information\n" + "Candidate MAC: " +
+                                key + " List of msg keys: " + candidateConnect.get(key));
+                    }
+
+                    Log.d(TAG, " -----AFTER COMBINING ALL THE MESSAGES FOR EACH DEVICE");
 
                     // Connect to devices and forward the messages
 //                    for (String key : bestCandidates.keySet()) {
@@ -377,16 +446,28 @@ public class BluetoothChat extends Activity {
                         Intent deviceIntent = new Intent();
 //                        deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, bestCandidates.get(key).deviceMac);
                         deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, key);
+                        Log.d(TAG, " ----- Connecting to the best candidates selected: " + key);
                         currentDevice = key;
                         forwardMessage = true;
                         connectDevice(deviceIntent, false);
+
+                        try {
+                            Thread.sleep(5000);                 //1000 milliseconds is one second.
+                        } catch(InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                        }
                     }
+
+                    Log.d(TAG, " -----AFTER THE SECOND ROUND");
+
                     forwardMessage = false;
                     sevDevices = false;
+                    bestCandidates.clear();
+                    candidateConnect.clear();
                 }
                 // If there is only one device around - connect to it once
                 else {
-                    Log.d(TAG, " ------------ This is a device I'm going to connect to: " + btChatClientsList.get(0));
+                    Log.d(TAG, " ------------ Only one device detected: this is a device I'm going to connect to: " + btChatClientsList.get(0));
                     Intent deviceIntent = new Intent();
                     deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(0));
                     connectDevice(deviceIntent, false);
@@ -395,6 +476,8 @@ public class BluetoothChat extends Activity {
                 btChatClientsList.clear();
                 messageReady = false;
 //                forwardMessage = false;
+                forwardListArray.clear();
+
             }
         }
         else {
@@ -631,23 +714,10 @@ public class BluetoothChat extends Activity {
     }
 
     private void connectDevice(Intent data, boolean secure) {
-        // Get the device MAC address
-//        String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-        String []deviceList = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS).split(",");
-        ArrayList<BluetoothDevice> btDeviceList = new ArrayList<BluetoothDevice>();
-        for (String address : deviceList) {
-            // Get the BluetoothDevice object
-            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-            btDeviceList.add(device);
-        }
-
         // Attempt to connect to the device
-//        mChatService.connect(btDeviceList, secure);
         Log.d(TAG, "BEFORE CONNECTING TO THE DEVICE");
         mChatService.connect(data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS), secure);
         Log.d(TAG, "AFTER CONNECTING TO THE DEVICE");
-
-
     }
 
     @Override

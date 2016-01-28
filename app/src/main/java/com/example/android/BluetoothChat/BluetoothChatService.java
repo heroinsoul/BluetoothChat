@@ -195,46 +195,36 @@ public class BluetoothChatService {
 
 
 //    public synchronized void connect(String deviceListString, boolean secure) {
-    public void connect(String deviceListString, boolean secure) {
-
-        String []deviceList = deviceListString.split(",");
+    public void connect(String address, boolean secure) {
 
 //        isWriter = true;
+        synchronized (BluetoothChatService.this) {
+            BluetoothDevice device = mAdapter.getRemoteDevice(address);
 
-        for (String address : deviceList) {
-            // Get the BluetoothDevice object
+            candidateMac = address;
 
-            synchronized (BluetoothChatService.this) {
-                BluetoothDevice device = mAdapter.getRemoteDevice(address);
+            if (D) Log.d(TAG, "connect to: " + device);
 
-                candidateMac = address;
-
-                if (D) Log.d(TAG, "connect to: " + device);
-
-                // Cancel any thread attempting to make a connection
-                if (mState == STATE_CONNECTING) {
-                    if (mConnectThread != null) {
-                        mConnectThread.cancel();
-                        mConnectThread = null;
-                    }
+            // Cancel any thread attempting to make a connection
+            if (mState == STATE_CONNECTING) {
+                if (mConnectThread != null) {
+                    mConnectThread.cancel();
+                    mConnectThread = null;
                 }
-
-                // Cancel any thread currently running a connection
-                if (mConnectedThread != null) {
-                    mConnectedThread.cancel();
-                    mConnectedThread = null;
-                }
-
-                // Start the thread to connect with the given device
-                mConnectThread = new ConnectThread(device, secure);
-                mConnectThread.start();
-                setState(STATE_CONNECTING);
             }
 
-            break;
-//            while(mState != STATE_LISTEN);
-        }
+            // Cancel any thread currently running a connection
+            if (mConnectedThread != null) {
+                mConnectedThread.cancel();
+                mConnectedThread = null;
+            }
 
+            // Start the thread to connect with the given device
+            mConnectThread = new ConnectThread(device, secure);
+            mConnectThread.start();
+            setState(STATE_CONNECTING);
+        }
+//            while(mState != STATE_LISTEN);
     }
 
 
@@ -472,14 +462,15 @@ public class BluetoothChatService {
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
-//                if (secure) {
-//                    tmp = device.createRfcommSocketToServiceRecord(
-//                            MY_UUID_SECURE);
-//                } else {
+                if (secure) {
+                    tmp = device.createRfcommSocketToServiceRecord(
+                            MY_UUID_SECURE);
+                } else {
                     tmp = device.createInsecureRfcommSocketToServiceRecord(
                             MY_UUID_INSECURE);
+                    Log.d(TAG, " ----after opening the rfcommsocket -----");
 //                    isWriter = true;
-//                }
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "create() failed", e);
             }
@@ -490,8 +481,8 @@ public class BluetoothChatService {
             Log.i(TAG, "BEGIN mConnectThread SocketType:" + mSocketType);
             setName("ConnectThread" + mSocketType);
 
-//            // Always cancel discovery because it will slow down a connection
-//            mAdapter.cancelDiscovery();
+            // Always cancel discovery because it will slow down a connection
+            mAdapter.cancelDiscovery();
 
             Log.d(TAG, "After cancel Discovery");
 
@@ -502,15 +493,15 @@ public class BluetoothChatService {
 //                Log.d(TAG, "Before socket connect");
                 isWriter = true;
                 mmSocket.connect();
-//                Log.d(TAG, "After socket connect");
+                Log.d(TAG, "After socket connect");
             } catch (IOException e) {
                 // Close the socket
-//                Log.d(TAG, "EXCEPTION WHILE CONNECTING");
+                Log.d(TAG, "EXCEPTION WHILE CONNECTING");
 
                 try {
-//                    Log.d(TAG, "Before socket close");
+                    Log.d(TAG, "Before socket close");
                     mmSocket.close();
-//                    Log.d(TAG, "After socket close");
+                    Log.d(TAG, "After socket close");
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() " + mSocketType +
                             " socket during connection failure", e2);
@@ -662,8 +653,8 @@ public class BluetoothChatService {
                             // ...
                             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                             // if yes display it
-                            mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
-                                    .sendToTarget();
+//                            mHandler.obtainMessage(BluetoothChat.MESSAGE_READ, bytes, -1, buffer)
+//                                    .sendToTarget();
                             // if not, store the message in hashmap
 
                             byte[] combined = new byte[buffer.length - 4];
@@ -763,21 +754,23 @@ public class BluetoothChatService {
                                 break;
                             }
                         }
+                        BluetoothChatService.this.start();
                     }
                     // else if it's a second connection round we just need to send a message
                     // to selected devices
                     else {
                         String deviceMac = BluetoothChat.currentDevice;
                         // Extract the message set
-                        String msgString = BluetoothChat.candidateConnect.get(deviceMac);
-                        String[] msgKeysArray = msgString.split(" ");
+                        ArrayList<Integer> msgKeysArray = BluetoothChat.candidateConnect.get(deviceMac);
                         ArrayList<MessageBT> messageList = new ArrayList<>();
                         // Find the messages and add them into messageList
-                        for (String key: msgKeysArray) {
+                        for (Integer key:msgKeysArray) {
                             Log.d(TAG, " -------- THIS IS THE MESSAGE I SEND: " + "ID: " +
-                                    BluetoothChat.messageHashMap.get(key).getId() + "\n" + "Value: "
+//                                    BluetoothChat.messageHashMap.get(key).getId() + "\n" + "Value: "
+                                    key + "\n" + "Value: "
                                     + BluetoothChat.messageHashMap.get(key));
                             messageList.add(BluetoothChat.messageHashMap.get(key));
+
                         }
 
                         // Send selected messages to the device
@@ -809,8 +802,13 @@ public class BluetoothChatService {
                                 }
 
                                 Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
+                                BluetoothChatService.this.start();
 
                             } catch (IOException e) {
+                                Log.e(TAG, "disconnected", e);
+                                connectionLost();
+                                // Start the service over to restart listening mode
+                                BluetoothChatService.this.start();
                             }
                         }
 
@@ -929,15 +927,16 @@ public class BluetoothChatService {
                 if ((receivedbeacons.containsKey(msg.getValue().getBeaconId())) && (msg.getValue().getSprayCount()<1)) {
 //                    Log.d(TAG, " -------- THIS IS THE MESSAGE I SEND: " + "ID: " + msg.getValue().getId() + "\n" + "Value: " + msg.getValue());
 //                    messageList.add(msg.getValue());
+                    ArrayList<Integer> msgKeyArray = new ArrayList<>();
+                    msgKeyArray.add(msg.getKey());
                     ForwardList candidate = new ForwardList(candidateMac,msg.getValue().getBeaconId(),
-                            receivedbeacons.get(msg.getValue().getBeaconId()),msg.getKey());
+                            receivedbeacons.get(msg.getValue().getBeaconId()),msgKeyArray);
                     Log.d(TAG, " ---------------- HERE ARE MY CANDIDATE VALUES-------- " + " MAC: "
                             + candidate.deviceMac + " BeaconID " + candidate.beaconId + " Date " +
                     candidate.time + " MSG key: " + candidate.messageKey);
                     BluetoothChat.forwardListArray.add(candidate);
                 }
             }
-            return;
         }
 
         /**
