@@ -69,6 +69,7 @@ public class BluetoothChatService {
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
     private int mState;
+    public static int curState;
 
     // Local Bluetooth adapter
     private BluetoothAdapter mBluetoothAdapter = null;
@@ -104,6 +105,7 @@ public class BluetoothChatService {
     private synchronized void setState(int state) {
         if (D) Log.d(TAG, "setState() " + mState + " -> " + state);
         mState = state;
+        curState = state;
 
         // Give the new state to the Handler so the UI Activity can update
         mHandler.obtainMessage(BluetoothChat.MESSAGE_STATE_CHANGE, state, -1).sendToTarget();
@@ -114,6 +116,7 @@ public class BluetoothChatService {
     public synchronized int getState() {
         return mState;
     }
+
 
     /**
      * Start the chat service. Specifically start AcceptThread to begin a
@@ -682,8 +685,13 @@ public class BluetoothChatService {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            BluetoothChatService.this.start();
-                            break;
+//                            BluetoothChatService.this.start();
+//                            break;
+
+                            // SEND ACK BACK
+
+                            String ack = "ACK";
+                            write(ack.getBytes());
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "disconnected", e);
@@ -754,7 +762,7 @@ public class BluetoothChatService {
                                 break;
                             }
                         }
-                        BluetoothChatService.this.start();
+//                        BluetoothChatService.this.start();
                     }
                     // else if it's a second connection round we just need to send a message
                     // to selected devices
@@ -795,14 +803,37 @@ public class BluetoothChatService {
                                 System.arraycopy("\n".getBytes(), 0, combined, messageForwarded.getBytes().length + messagebuf.length, 1);
                                 write(combined);
 
-                                Log.d(TAG, " ------------------ BEFORE UPDATING THE SPRAY COUNT ------------");
-                                // Update the spraycount of messages we just forwarded
-                                for (MessageBT msg: messageList) {
-                                    BluetoothChat.messageHashMap.get(msg.getId()).setSprayCount(1);
-                                }
 
-                                Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
-                                BluetoothChatService.this.start();
+                                // wait for ack from the receiving party
+                                while (true) {
+                                    try {
+
+                                        Log.d(TAG, "Reading from input...writer..waiting for the ACK");
+                                        // Read from the InputStream
+                                        bytes = mmInStream.read(buffer);
+
+
+                                        receivedMsg = new String(buffer);
+
+                                        if (receivedMsg.startsWith("ACK")) {
+                                            // Update the spray count
+                                            Log.d(TAG, " ------------------ BEFORE UPDATING THE SPRAY COUNT ------------");
+                                            // Update the spraycount of messages we just forwarded
+                                            for (MessageBT msg: messageList) {
+                                                BluetoothChat.messageHashMap.get(msg.getId()).setSprayCount(1);
+                                            }
+                                            Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
+                                            BluetoothChatService.this.start();
+                                            break;
+                                        }
+                                    } catch (IOException e) {
+                                        Log.e(TAG, "disconnected during the ACK procedure", e);
+                                        connectionLost();
+                                        // Start the service over to restart listening mode
+                                        BluetoothChatService.this.start();
+                                        break;
+                                    }
+                                }
 
                             } catch (IOException e) {
                                 Log.e(TAG, "disconnected", e);
@@ -811,7 +842,6 @@ public class BluetoothChatService {
                                 BluetoothChatService.this.start();
                             }
                         }
-
                         BluetoothChatService.this.start();
                     }
 
@@ -887,17 +917,42 @@ public class BluetoothChatService {
                                             System.arraycopy("\n".getBytes(), 0, combined, messageForwarded.getBytes().length + messagebuf.length, 1);
                                             write(combined);
 
-                                            Log.d(TAG, " ------------------ BEFORE UPDATING THE SPRAY COUNT ------------");
-                                            // Update the spraycount of messages we just forwarded
-                                            for (MessageBT msg: messageList) {
-                                                BluetoothChat.messageHashMap.get(msg.getId()).setSprayCount(1);
-                                            }
+                                            // wait for ack from the receiving party
+                                            while (true) {
+                                                try {
 
-                                            Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
+                                                    Log.d(TAG, "Reading from input...writer..waiting for the ACK");
+                                                    // Read from the InputStream
+                                                    bytes = mmInStream.read(buffer);
+
+
+                                                    receivedMsg = new String(buffer);
+
+                                                    if (receivedMsg.startsWith("ACK")) {
+                                                        // Update the spray count
+                                                        Log.d(TAG, " ------------------ BEFORE UPDATING THE SPRAY COUNT ------------");
+                                                        // Update the spraycount of messages we just forwarded
+                                                        for (MessageBT msg: messageList) {
+                                                            BluetoothChat.messageHashMap.get(msg.getId()).setSprayCount(1);
+                                                        }
+                                                        Log.d(TAG, " ------------------ AFTER UPDATING THE SPRAY COUNT ------------");
+                                                        BluetoothChatService.this.start();
+                                                        break;
+                                                    }
+                                                } catch (IOException e) {
+                                                    Log.e(TAG, "disconnected during the ACK procedure", e);
+                                                    connectionLost();
+                                                    // Start the service over to restart listening mode
+                                                    BluetoothChatService.this.start();
+                                                    break;
+                                                }
+                                            }
 
                                         } catch (IOException e) {
                                         }
                                     }
+                                    BluetoothChatService.this.start();
+                                    break;
 
                                 } catch (Exception e) {
                                     e.printStackTrace();

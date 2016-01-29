@@ -336,16 +336,18 @@ public class BluetoothChat extends Activity {
                     sevDevices = true;
                     // Request beacon data from detected devices
                     for (int i=0; i < listSize; i++) {
+//                        Log.d(TAG, " ------- CURRENT STATE ---------- " + BluetoothChatService.curState);
+
                         Log.d(TAG, " ------------ Multiple devices detected: this is a device I'm going to connect to: " + btChatClientsList.get(i));
                         Intent deviceIntent = new Intent();
                         deviceIntent.putExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS, btChatClientsList.get(i));
-//                        // Set result
-//                        setResult(Activity.RESULT_OK, deviceIntent);
+                        //                        // Set result
+                        //                        setResult(Activity.RESULT_OK, deviceIntent);
                         connectDevice(deviceIntent, false);
 
 
                         try {
-                            Thread.sleep(5000);                 //1000 milliseconds is one second.
+                            Thread.sleep(8000);                 //1000 milliseconds is one second.
                         } catch(InterruptedException ex) {
                             Thread.currentThread().interrupt();
                         }
@@ -408,7 +410,7 @@ public class BluetoothChat extends Activity {
 //                                Log.d(TAG, " --------------- this is an element of best bestCandidates.get(key).messageKey: " + msgkey);
 //                                updatedArraylist.add(msgkey);
 //                            }
-                            candidateConnect.put(bestCandidates.get(key).deviceMac,updatedArraylist);
+                            candidateConnect.put(bestCandidates.get(key).deviceMac, updatedArraylist);
 
                         }
                     }
@@ -418,20 +420,6 @@ public class BluetoothChat extends Activity {
                                 key + " " + candidateConnect.get(key));
 
                     }
-
-//                    // Combine messages for the same device (if any)
-//                    for (String key : bestCandidates.keySet()) {
-//                        if (!candidateConnect.containsKey(bestCandidates.get(key).deviceMac)) {
-//                            ArrayList<Integer> msgArray = new ArrayList<>();
-//                            msgArray.add(bestCandidates.get(key).messageKey);
-//                            candidateConnect.put(bestCandidates.get(key).deviceMac,msgArray);
-//                        }
-//                        else {
-//                            ArrayList oldmsgArray = candidateConnect.get(bestCandidates.get(key).deviceMac);
-//                            oldmsgArray.add(bestCandidates.get(key).messageKey);
-//                            candidateConnect.put(bestCandidates.get(key).deviceMac, oldmsgArray);
-//                        }
-//                    }
 
                     for (String key : candidateConnect.keySet()) {
                         Log.d(TAG, "---This is a candidate connect information\n" + "Candidate MAC: " +
@@ -452,7 +440,7 @@ public class BluetoothChat extends Activity {
                         connectDevice(deviceIntent, false);
 
                         try {
-                            Thread.sleep(5000);                 //1000 milliseconds is one second.
+                            Thread.sleep(5000);                 //10000 milliseconds is ten seconds.
                         } catch(InterruptedException ex) {
                             Thread.currentThread().interrupt();
                         }
